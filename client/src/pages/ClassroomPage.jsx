@@ -2,15 +2,7 @@ import { useState, useEffect, useRef, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { coursesAPI, enrollmentsAPI, notesAPI, submissionsAPI, errMsg } from '../lib/api';
-import CodeMirror from '@uiw/react-codemirror';
-import { html } from '@codemirror/lang-html';
-import { css } from '@codemirror/lang-css';
-import { javascript } from '@codemirror/lang-javascript';
-import { python } from '@codemirror/lang-python';
-import { sql } from '@codemirror/lang-sql';
-import { EditorView, keymap } from '@codemirror/view';
-import { indentWithTab } from '@codemirror/commands';
-import { oneDark } from '@codemirror/theme-one-dark';
+import Editor from '@monaco-editor/react';
 import { 
   Play, 
   CheckCircle2, 
@@ -29,24 +21,7 @@ import {
   Check
 } from 'lucide-react';
 
-const getLanguageExtension = (lang) => {
-  switch (String(lang || '').toLowerCase()) {
-    case 'html':
-      return html();
-    case 'css':
-      return css();
-    case 'javascript':
-    case 'js':
-      return javascript({ jsx: true });
-    case 'python':
-    case 'py':
-      return python();
-    case 'sql':
-      return sql();
-    default:
-      return [];
-  }
-};
+
 
 const getYouTubeId = (url) => {
   if (!url) return null;
@@ -117,8 +92,8 @@ export default function ClassroomPage() {
       setEnrollment(myEnrollment);
 
       // Default code prompt
-      if (courseRes.data?.assignment?.type === 'code') {
-        setCodeContent(courseRes.data.assignment.starterCode || '// Write your code solution here\n');
+      if (courseRes.data?.assignment?.type === 'code' || courseRes.data?.assignment?.language) {
+        setCodeContent(courseRes.data.assignment.starterCode || '');
       } else {
         setTextContent(courseRes.data.assignment.starterText || '');
       }
@@ -273,18 +248,36 @@ export default function ClassroomPage() {
     e.preventDefault();
   };
 
-  const editorDomEventHandlers = useMemo(() => {
-    return EditorView.domEventHandlers({
-      paste: (event) => {
-        event.preventDefault();
-        setPasteEvents((prev) => prev + 1);
-      },
-      contextmenu: (event) => {
-        event.preventDefault();
-      },
+  const handleEditorBeforeMount = (monaco) => {
+    // HTML autocomplete — include CSS and JS completions inside HTML
+    monaco.languages.html.htmlDefaults.setOptions({
+      suggest: { html5: true },
+      validate: true,
+      format: { enable: true },
     });
-  }, []);
+    // CSS autocomplete
+    monaco.languages.css.cssDefaults.setOptions({ validate: true });
+    monaco.languages.css.scssDefaults.setOptions({ validate: true });
+    // JS/TS autocomplete
+    monaco.languages.typescript.javascriptDefaults.setDiagnosticsOptions({
+      noSemanticValidation: false,
+      noSyntaxValidation: false,
+    });
+    monaco.languages.typescript.javascriptDefaults.setCompilerOptions({
+      target: monaco.languages.typescript.ScriptTarget.Latest,
+      allowNonTsExtensions: true,
+      lib: ['dom', 'es2020'],
+    });
+  };
 
+  const handleEditorDidMount = (editor, monaco) => {
+    // Intercept keyboard paste (Ctrl+V / Cmd+V) inside Monaco Editor
+    editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyV, () => {
+      handlePasteAttempt({ preventDefault: () => {} });
+    });
+    // Trigger suggestions immediately on mount
+    editor.trigger('keyboard', 'editor.action.triggerSuggest', {});
+  };
   const handleCodeChange = (value) => {
     setCodeContent(value);
     const diff = Math.abs(value.length - lastLenRef.current);
@@ -684,44 +677,32 @@ export default function ClassroomPage() {
                   </span>
                 </div>
 
-                {course.assignment.type === 'code' ? (
+                {course.assignment?.type === 'code' || course.assignment?.language ? (
                   <div className="text-sm font-mono">
-                    <CodeMirror
-                      value={codeContent}
+                    <Editor
                       height="380px"
-                      theme="none"
-                      basicSetup={{
-                        lineNumbers: true,
-                        highlightActiveLineGutter: true,
-                        highlightSpecialChars: true,
-                        foldGutter: true,
-                        drawSelection: true,
-                        dropCursor: true,
-                        allowMultipleSelections: true,
-                        indentOnInput: true,
-                        syntaxHighlighting: false,
-                        bracketMatching: true,
-                        closeBrackets: true,
-                        autocompletion: true,
-                        rectangularSelection: true,
-                        crosshairCursor: true,
-                        highlightActiveLine: true,
-                        highlightSelectionMatches: true,
-                        closeBracketsKeymap: true,
-                        defaultKeymap: true,
-                        searchKeymap: true,
-                        historyKeymap: true,
-                        foldKeymap: true,
-                        completionKeymap: true,
-                        lintKeymap: true,
-                      }}
-                      extensions={[
-                        oneDark,
-                        getLanguageExtension(course.assignment?.language),
-                        keymap.of([indentWithTab]),
-                        editorDomEventHandlers,
-                      ]}
+                      theme="vs-dark"
+                      defaultLanguage={course.assignment?.language || 'javascript'}
+                      language={course.assignment?.language || 'javascript'}
+                      value={codeContent}
                       onChange={handleCodeChange}
+                      beforeMount={handleEditorBeforeMount}
+                      onMount={handleEditorDidMount}
+                      options={{
+                        suggestOnTriggerCharacters: true,
+                        quickSuggestions: { other: true, comments: true, strings: true },
+                        quickSuggestionsDelay: 0,
+                        wordBasedSuggestions: 'currentDocument',
+                        snippetSuggestions: 'inline',
+                        tabCompletion: 'on',
+                        acceptSuggestionOnEnter: 'on',
+                        minimap: { enabled: false },
+                        fontSize: 14,
+                        contextmenu: false,
+                        formatOnType: true,
+                        formatOnPaste: false,
+                        automaticLayout: true,
+                      }}
                     />
                   </div>
                 ) : (
