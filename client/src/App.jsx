@@ -5,6 +5,7 @@ import { useTheme } from './context/useTheme';
 import Navbar from './components/Navbar';
 import AuthModal from './components/AuthModal';
 import ExplorePage from './pages/ExplorePage';
+import CoursesPage from './pages/CoursesPage';
 import ClassroomPage from './pages/ClassroomPage';
 import InterviewPage from './pages/InterviewPage';
 import TeacherQueuePage from './pages/TeacherQueuePage';
@@ -44,7 +45,8 @@ export default function App() {
       
       <main>
         <Routes>
-          <Route path="/" element={<ExplorePage onOpenAuth={() => setAuthModalOpen(true)} />} />
+          <Route path="/" element={<ExplorePage />} />
+          <Route path="/courses" element={<CoursesPage onOpenAuth={() => setAuthModalOpen(true)} />} />
           <Route
             path="/course/:id"
             element={

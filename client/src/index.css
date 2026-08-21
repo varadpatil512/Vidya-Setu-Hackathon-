@@ -3,27 +3,35 @@
 /* ─── Tailwind v4: enable class-based dark mode ─────────────────────────── */
 @custom-variant dark (&:where(.dark, .dark *));
 
-/* ─── Theme colour tokens (light = :root, dark = .dark) ─────────────────── */
+/* ─── Distinctive IDE / Deep Ink & Cyan Tokens ───────────────────────────── */
 :root {
-  --vs-bg:            #F7F6FC;
+  --vs-bg:            #F4F6F9;
   --vs-surface:       #FFFFFF;
-  --vs-surface-2:     #EDEAF6;
-  --vs-text:          #1E1B2E;
-  --vs-muted:         #6B6885;
-  --vs-subtle:        #9896AA;
-  --vs-border:        #DDD9F0;
-  --vs-border-subtle: #EAE8F5;
+  --vs-surface-2:     #EBF0F5;
+  --vs-text:          #0F172A;
+  --vs-muted:         #475569;
+  --vs-subtle:        #94A3B8;
+  --vs-border:        #E2E8F0;
+  --vs-border-subtle: #F1F5F9;
+  --vs-accent:        #0284C7;
+  --vs-accent-cyan:   #0284C7;
+  --vs-accent-light:  #F0F9FF;
+  --vs-accent-hover:  #0369A1;
 }
 
 .dark {
-  --vs-bg:            #0F1123;
-  --vs-surface:       #171A35;
-  --vs-surface-2:     #1E2244;
-  --vs-text:          #E8E9F5;
-  --vs-muted:         #8B8FA8;
-  --vs-subtle:        #545878;
-  --vs-border:        #252844;
-  --vs-border-subtle: #1C1F3A;
+  --vs-bg:            #0B0F17;
+  --vs-surface:       #111827;
+  --vs-surface-2:     #1F2937;
+  --vs-text:          #F8FAFC;
+  --vs-muted:         #94A3B8;
+  --vs-subtle:        #64748B;
+  --vs-border:        #1E293B;
+  --vs-border-subtle: #111827;
+  --vs-accent:        #38BDF8;
+  --vs-accent-cyan:   #00F0FF;
+  --vs-accent-light:  #0C4A6E;
+  --vs-accent-hover:  #7DD3FC;
 }
 
 /* ─── Expose tokens to Tailwind utilities ────────────────────────────────── */
@@ -36,34 +44,51 @@
   --color-vs-subtle:        var(--vs-subtle);
   --color-vs-border:        var(--vs-border);
   --color-vs-border-subtle: var(--vs-border-subtle);
+  --color-vs-accent:        var(--vs-accent);
+  --color-vs-accent-cyan:   var(--vs-accent-cyan);
+  --color-vs-accent-light:  var(--vs-accent-light);
+  --color-vs-accent-hover:  var(--vs-accent-hover);
 }
 
-/* ─── Base styles ────────────────────────────────────────────────────────── */
+/* ─── Typography & Base Styles ───────────────────────────────────────────── */
 html {
-  /* smooth colour transition when toggling theme */
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
   transition: background-color 250ms ease, color 250ms ease;
+}
+
+h1, h2, h3, .font-display {
+  font-family: 'Space Grotesk', 'Plus Jakarta Sans', system-ui, sans-serif;
+  letter-spacing: -0.02em;
 }
 
 body {
   background-color: var(--vs-bg);
   color: var(--vs-text);
-  @apply antialiased selection:bg-indigo-500 selection:text-white;
+  @apply antialiased selection:bg-sky-200 selection:text-sky-900;
 }
 
-/* ─── Smooth theme transition on interactive elements ────────────────────── */
+/* ─── Smooth theme transition ────────────────────────────────────────────── */
 *, *::before, *::after {
   transition-property: background-color, border-color, color;
   transition-duration: 200ms;
   transition-timing-function: ease;
 }
 
-/* Exclude transitions on transforms/opacity so animations aren't sluggish */
 .no-theme-transition,
 .no-theme-transition * {
   transition: none !important;
 }
 
-/* ─── Existing fadeIn animation ──────────────────────────────────────────── */
+/* ─── Orchestrated Motion Keyframes ──────────────────────────────────────── */
+@keyframes heroEntrance {
+  0%   { opacity: 0; transform: translateY(16px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+.animate-hero-entrance {
+  animation: heroEntrance 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
 @keyframes fadeIn {
   from { opacity: 0; transform: scale(0.98); }
   to   { opacity: 1; transform: scale(1); }
@@ -73,29 +98,41 @@ body {
   animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-/* ─── Scroll-reveal animation for step cards ─────────────────────────────── */
 @keyframes fadeUp {
-  from { opacity: 0; transform: translateY(20px); }
+  from { opacity: 0; transform: translateY(24px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 
 .animate-fade-up {
-  opacity: 0;
-  transform: translateY(20px);
+  animation: fadeUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-.animate-fade-up.is-visible {
-  animation: fadeUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+/* ─── Floating & Glow Animations ─────────────────────────────────────────── */
+@keyframes heroFloat {
+  0%, 100% { transform: translateY(0px); }
+  50%      { transform: translateY(-8px); }
 }
 
-/* ─── Button micro-interaction utilities ─────────────────────────────────── */
+.animate-hero-float {
+  animation: heroFloat 6s ease-in-out infinite;
+}
+
+@keyframes pulseGlow {
+  0%, 100% { opacity: 0.2; transform: scale(1); }
+  50%      { opacity: 0.4; transform: scale(1.04); }
+}
+
+.animate-pulse-glow {
+  animation: pulseGlow 7s ease-in-out infinite;
+}
+
+/* ─── Micro-interaction utilities ────────────────────────────────────────── */
 .btn-scale {
   transition: transform 150ms ease, box-shadow 150ms ease;
 }
-.btn-scale:hover  { transform: scale(1.03); }
+.btn-scale:hover  { transform: scale(1.02); }
 .btn-scale:active { transform: scale(0.98); }
 
-/* ─── Theme toggle button ────────────────────────────────────────────────── */
 .theme-toggle {
   transition: transform 300ms ease, background-color 200ms ease;
 }

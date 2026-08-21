@@ -1,16 +1,14 @@
 import { useState, useEffect } from 'react';
 import { coursesAPI, errMsg } from '../lib/api';
-import { 
-  LayoutDashboard, 
-  Plus, 
-  Trash2, 
-  Edit3, 
-  Users, 
-  BookOpen, 
-  Award, 
-  CheckCircle2, 
+import {
+  LayoutDashboard,
+  Plus,
+  Trash2,
+  Edit3,
+  Users,
+  BookOpen,
+  CheckCircle2,
   X,
-  Code2,
   Zap,
   ShieldCheck
 } from 'lucide-react';
@@ -83,7 +81,7 @@ export default function AdminPage() {
       title: '',
       description: '',
       skill: '',
-      instructor: 'Dr. Faculty Member',
+      instructor: 'Faculty Member',
       price: 999,
       category: 'Development',
       thumbnail: 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=600&auto=format&fit=crop&q=60',
@@ -150,183 +148,139 @@ export default function AdminPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-vs-bg text-vs-text flex items-center justify-center">
+      <div className="min-h-screen bg-vs-bg flex items-center justify-center">
         <div className="text-center space-y-3">
-          <div className="w-10 h-10 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto" />
-          <p className="text-sm text-vs-muted">Loading VidyaSetu Admin Dashboard...</p>
+          <div className="w-8 h-8 border-2 border-vs-accent border-t-transparent rounded-full animate-spin mx-auto" />
+          <p className="text-sm text-vs-muted">Loading Admin Panel...</p>
         </div>
       </div>
     );
   }
 
+  const inputClass = "w-full p-2.5 bg-vs-surface-2 border border-vs-border rounded text-xs text-vs-text focus:outline-none focus:border-vs-accent";
+
   return (
     <div className="min-h-screen bg-vs-bg text-vs-text pb-20">
-      
+
       {/* Top Banner */}
-      <div className="bg-vs-surface border-b border-vs-border py-6 px-4 sm:px-8">
+      <div className="bg-vs-surface border-b border-vs-border py-8 px-4 sm:px-8">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div>
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/30 text-purple-500 dark:text-purple-300 text-xs font-semibold">
-              <LayoutDashboard className="w-4 h-4" />
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-vs-accent-light text-vs-accent text-xs font-semibold">
+              <LayoutDashboard className="w-3.5 h-3.5" />
               Platform Administration
             </div>
-            <h1 className="text-2xl font-extrabold text-vs-text mt-2">Admin Course & Student Management</h1>
-            <p className="text-xs text-vs-muted mt-0.5">
-              Create, edit, or audit courses and view enrolled student rosters.
+            <h1 className="text-2xl font-bold text-vs-text mt-2">Course & Student Management</h1>
+            <p className="text-sm text-vs-muted mt-0.5">
+              Manage courses, view enrolled student rosters, and inspect verification status.
             </p>
           </div>
 
           <button
             onClick={handleOpenCreate}
-            className="px-4 py-2.5 bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white font-bold text-xs rounded-xl shadow-lg transition-all btn-scale flex items-center gap-2"
+            className="flex items-center gap-2 px-4 py-2 bg-vs-accent hover:bg-vs-accent-hover text-white text-xs font-semibold rounded transition-colors btn-scale"
           >
             <Plus className="w-4 h-4" />
-            Create New Course
+            Create Course
           </button>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-        
-        {/* Statistics Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-          <div className="p-6 bg-vs-surface border border-vs-border rounded-3xl flex items-center gap-4 shadow-sm">
-            <div className="w-12 h-12 rounded-2xl bg-indigo-500/20 text-indigo-500 flex items-center justify-center font-bold">
-              <BookOpen className="w-6 h-6" />
-            </div>
-            <div>
-              <span className="text-xs text-vs-muted font-semibold uppercase">Total Courses</span>
-              <h3 className="text-2xl font-extrabold text-vs-text mt-0.5">{courses.length}</h3>
-            </div>
-          </div>
-
-          <div className="p-6 bg-vs-surface border border-vs-border rounded-3xl flex items-center gap-4 shadow-sm">
-            <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 text-emerald-500 flex items-center justify-center font-bold">
-              <Users className="w-6 h-6" />
-            </div>
-            <div>
-              <span className="text-xs text-vs-muted font-semibold uppercase">Selected Roster Students</span>
-              <h3 className="text-2xl font-extrabold text-vs-text mt-0.5">{enrolledStudents.length}</h3>
-            </div>
-          </div>
-
-          <div className="p-6 bg-vs-surface border border-vs-border rounded-3xl flex items-center gap-4 shadow-sm">
-            <div className="w-12 h-12 rounded-2xl bg-purple-500/20 text-purple-500 flex items-center justify-center font-bold">
-              <ShieldCheck className="w-6 h-6" />
-            </div>
-            <div>
-              <span className="text-xs text-vs-muted font-semibold uppercase">Platform Engine</span>
-              <h3 className="text-sm font-bold text-emerald-500 mt-1">Python AI + Node MERN</h3>
-            </div>
-          </div>
-        </div>
-
-        {/* Main Grid */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          
+
           {/* Courses List */}
-          <div className="space-y-4">
-            <h3 className="text-xs font-bold text-vs-muted uppercase tracking-wider px-1">
-              Course Catalog ({courses.length})
+          <div className="space-y-3">
+            <h3 className="text-xs font-bold text-vs-muted uppercase tracking-wider">
+              Courses ({courses.length})
             </h3>
 
-            <div className="space-y-3">
-              {courses.map((c) => {
-                const isSelected = selectedCourse?._id === c._id;
+            <div className="space-y-2">
+              {courses.map((course) => {
+                const isSelected = selectedCourse?._id === course._id;
                 return (
                   <div
-                    key={c._id}
-                    onClick={() => handleSelectCourse(c)}
-                    className={`p-4 rounded-2xl border transition-all cursor-pointer flex items-center justify-between ${
+                    key={course._id}
+                    onClick={() => handleSelectCourse(course)}
+                    className={`p-4 rounded border text-left cursor-pointer transition-all ${
                       isSelected
-                        ? 'bg-purple-950/20 dark:bg-purple-950/40 border-purple-500/50 text-vs-text shadow-md'
+                        ? 'bg-vs-accent-light border-vs-accent text-vs-text'
                         : 'bg-vs-surface hover:bg-vs-surface-2 border-vs-border text-vs-text'
                     }`}
                   >
-                    <div className="space-y-1">
-                      <span className="text-xs font-bold text-indigo-500 dark:text-indigo-400">{c.skill}</span>
-                      <h4 className="text-sm font-bold text-vs-text line-clamp-1">{c.title}</h4>
-                      <p className="text-xs text-vs-muted">₹{c.price} • {c.instructor}</p>
+                    <div className="flex items-center justify-between mb-1">
+                      <h4 className="text-sm font-bold text-vs-text truncate">{course.title}</h4>
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={(e) => { e.stopPropagation(); handleOpenEdit(course); }}
+                          className="p-1 rounded text-vs-muted hover:text-vs-accent"
+                          title="Edit"
+                        >
+                          <Edit3 className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); handleDeleteCourse(course._id); }}
+                          className="p-1 rounded text-vs-muted hover:text-red-600"
+                          title="Delete"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     </div>
-
-                    <div className="flex items-center gap-1">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleOpenEdit(c);
-                        }}
-                        className="p-1.5 rounded-lg text-vs-muted hover:text-vs-text hover:bg-vs-surface-2"
-                        title="Edit Course"
-                      >
-                        <Edit3 className="w-4 h-4" />
-                      </button>
-
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDeleteCourse(c._id);
-                        }}
-                        className="p-1.5 rounded-lg text-vs-muted hover:text-rose-500 hover:bg-rose-950/30"
-                        title="Delete Course"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
+                    <p className="text-xs text-vs-muted truncate">{course.skill} · ₹{course.price}</p>
                   </div>
                 );
               })}
             </div>
           </div>
 
-          {/* Enrolled Roster Panel */}
+          {/* Enrolled Roster */}
           {selectedCourse && (
             <div className="lg:col-span-2 space-y-6">
-              <div className="p-6 bg-vs-surface border border-vs-border rounded-3xl space-y-6 shadow-sm">
-                
-                <div className="flex justify-between items-start border-b border-vs-border pb-4">
+              <div className="p-6 bg-vs-surface border border-vs-border rounded-lg space-y-4">
+                <div className="flex justify-between items-start">
                   <div>
-                    <span className="text-xs font-bold text-indigo-500 dark:text-indigo-400">{selectedCourse.skill}</span>
-                    <h2 className="text-xl font-bold text-vs-text">{selectedCourse.title}</h2>
-                    <p className="text-xs text-vs-muted mt-1">{selectedCourse.description}</p>
+                    <span className="text-xs font-semibold text-vs-accent">{selectedCourse.category}</span>
+                    <h2 className="text-xl font-bold text-vs-text mt-0.5">{selectedCourse.title}</h2>
+                    <p className="text-xs text-vs-muted mt-1 font-mono">ID: {selectedCourse._id}</p>
                   </div>
-
-                  <span className="px-3 py-1 bg-vs-surface-2 border border-vs-border rounded-xl text-xs font-mono font-bold text-emerald-500">
-                    ₹{selectedCourse.price}
-                  </span>
+                  <div className="text-right">
+                    <span className="text-sm font-bold text-vs-text block">₹{selectedCourse.price}</span>
+                    <span className="text-xs text-vs-muted">By {selectedCourse.instructor}</span>
+                  </div>
                 </div>
 
-                <div className="space-y-4">
-                  <h3 className="text-sm font-bold text-vs-text flex items-center gap-2">
-                    <Users className="w-4 h-4 text-emerald-500" />
-                    Enrolled Students Roster ({enrolledStudents.length})
+                <div className="pt-4 border-t border-vs-border">
+                  <h3 className="text-sm font-bold text-vs-text flex items-center gap-2 mb-3">
+                    <Users className="w-4 h-4 text-vs-accent" />
+                    Enrolled Students ({enrolledStudents.length})
                   </h3>
 
                   {loadingStudents ? (
-                    <p className="text-xs text-vs-muted">Loading student roster...</p>
+                    <p className="text-xs text-vs-muted">Loading roster...</p>
                   ) : enrolledStudents.length === 0 ? (
-                    <p className="text-xs text-vs-muted italic p-4 bg-vs-surface-2 rounded-2xl border border-vs-border">
-                      No students currently enrolled in this course.
-                    </p>
+                    <p className="text-xs text-vs-muted py-4 text-center">No students currently enrolled in this course.</p>
                   ) : (
                     <div className="space-y-2">
-                      {enrolledStudents.map((st, idx) => (
+                      {enrolledStudents.map((enrollment) => (
                         <div
-                          key={idx}
-                          className="p-4 bg-vs-surface-2 border border-vs-border rounded-2xl flex items-center justify-between text-xs"
+                          key={enrollment._id}
+                          className="p-3 bg-vs-surface-2 border border-vs-border rounded flex items-center justify-between text-xs"
                         >
                           <div>
-                            <h4 className="font-bold text-vs-text">{st.student?.name || 'Student'}</h4>
-                            <span className="text-vs-muted text-[11px]">{st.student?.email}</span>
+                            <span className="font-semibold text-vs-text block">{enrollment.user?.name || 'Student'}</span>
+                            <span className="text-vs-muted font-mono text-[11px]">{enrollment.user?.email}</span>
                           </div>
-
                           <div className="text-right">
-                            <span className={`px-2.5 py-0.5 rounded text-[10px] font-bold uppercase ${
-                              st.status === 'VERIFIED' ? 'bg-emerald-500/20 text-emerald-500' : 'bg-indigo-500/20 text-indigo-500'
+                            <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                              enrollment.status === 'VERIFIED'
+                                ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 border border-emerald-200 dark:border-emerald-800'
+                                : 'bg-amber-50 dark:bg-amber-950/40 text-amber-600 border border-amber-200 dark:border-amber-800'
                             }`}>
-                              {st.status || 'ENROLLED'}
+                              {enrollment.status}
                             </span>
                             <span className="block text-[10px] text-vs-muted mt-0.5">
-                              Enrolled: {new Date(st.createdAt).toLocaleDateString()}
+                              Enrolled: {new Date(enrollment.createdAt).toLocaleDateString()}
                             </span>
                           </div>
                         </div>
@@ -334,157 +288,114 @@ export default function AdminPage() {
                     </div>
                   )}
                 </div>
-
               </div>
             </div>
           )}
 
         </div>
-
       </div>
 
-      {/* Course Modal (Create / Edit) */}
+      {/* Modal */}
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-vs-bg/80 backdrop-blur-sm animate-fade-in">
-          <div className="relative w-full max-w-2xl bg-vs-surface border border-vs-border rounded-3xl shadow-2xl overflow-hidden text-vs-text max-h-[90vh] flex flex-col">
-            
-            <div className="p-6 bg-vs-surface-2 border-b border-vs-border flex items-center justify-between">
-              <h3 className="text-lg font-bold text-vs-text">
-                {editingCourse ? 'Edit Course' : 'Create New VidyaSetu Course'}
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-fade-in">
+          <div className="relative w-full max-w-lg bg-vs-surface border border-vs-border rounded-lg shadow-xl overflow-hidden text-vs-text max-h-[90vh] flex flex-col">
+            <div className="px-6 py-4 border-b border-vs-border flex items-center justify-between">
+              <h3 className="text-base font-bold text-vs-text">
+                {editingCourse ? 'Edit Course' : 'Create New Course'}
               </h3>
-              <button onClick={() => setShowModal(false)} className="p-1 text-vs-muted hover:text-vs-text">
-                <X className="w-5 h-5" />
+              <button onClick={() => setShowModal(false)} className="p-1 rounded text-vs-muted hover:text-vs-text">
+                <X className="w-4 h-4" />
               </button>
             </div>
 
             <form onSubmit={handleSaveCourse} className="p-6 overflow-y-auto space-y-4 text-xs">
-              {error && (
-                <div className="p-3 bg-rose-500/10 border border-rose-500/20 rounded-xl text-rose-500 font-semibold">
-                  {error}
-                </div>
-              )}
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block font-semibold text-vs-text mb-1">Course Title</label>
-                  <input
-                    type="text"
-                    required
-                    value={form.title}
-                    onChange={(e) => setForm({ ...form, title: e.target.value })}
-                    className="w-full p-2.5 bg-vs-surface-2 border border-vs-border rounded-xl text-vs-text focus:outline-none focus:border-indigo-500"
-                  />
-                </div>
-
-                <div>
-                  <label className="block font-semibold text-vs-text mb-1">Skill Tag</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. React.js"
-                    value={form.skill}
-                    onChange={(e) => setForm({ ...form, skill: e.target.value })}
-                    className="w-full p-2.5 bg-vs-surface-2 border border-vs-border rounded-xl text-vs-text focus:outline-none focus:border-indigo-500"
-                  />
-                </div>
+              <div>
+                <label className="block font-semibold mb-1">Course Title</label>
+                <input
+                  type="text"
+                  required
+                  value={form.title}
+                  onChange={(e) => setForm({ ...form, title: e.target.value })}
+                  className={inputClass}
+                  placeholder="e.g. Advanced React Architecture"
+                />
               </div>
 
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-semibold text-vs-text mb-1">Instructor</label>
+                  <label className="block font-semibold mb-1">Skill Verified</label>
+                  <input
+                    type="text"
+                    required
+                    value={form.skill}
+                    onChange={(e) => setForm({ ...form, skill: e.target.value })}
+                    className={inputClass}
+                    placeholder="e.g. React Custom Hooks"
+                  />
+                </div>
+                <div>
+                  <label className="block font-semibold mb-1">Instructor</label>
                   <input
                     type="text"
                     required
                     value={form.instructor}
                     onChange={(e) => setForm({ ...form, instructor: e.target.value })}
-                    className="w-full p-2.5 bg-vs-surface-2 border border-vs-border rounded-xl text-vs-text focus:outline-none focus:border-indigo-500"
+                    className={inputClass}
                   />
                 </div>
+              </div>
 
+              <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-semibold text-vs-text mb-1">Price (₹)</label>
+                  <label className="block font-semibold mb-1">Category</label>
+                  <select
+                    value={form.category}
+                    onChange={(e) => setForm({ ...form, category: e.target.value })}
+                    className={inputClass}
+                  >
+                    <option value="Web Development">Web Development</option>
+                    <option value="Programming">Programming</option>
+                    <option value="Data & Databases">Data & Databases</option>
+                    <option value="Development">Development</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block font-semibold mb-1">Price (₹)</label>
                   <input
                     type="number"
                     required
                     value={form.price}
                     onChange={(e) => setForm({ ...form, price: Number(e.target.value) })}
-                    className="w-full p-2.5 bg-vs-surface-2 border border-vs-border rounded-xl text-vs-text focus:outline-none focus:border-indigo-500"
-                  />
-                </div>
-
-                <div>
-                  <label className="block font-semibold text-vs-text mb-1">Category</label>
-                  <input
-                    type="text"
-                    required
-                    value={form.category}
-                    onChange={(e) => setForm({ ...form, category: e.target.value })}
-                    className="w-full p-2.5 bg-vs-surface-2 border border-vs-border rounded-xl text-vs-text focus:outline-none focus:border-indigo-500"
+                    className={inputClass}
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block font-semibold text-vs-text mb-1">Description</label>
+                <label className="block font-semibold mb-1">Description</label>
                 <textarea
-                  rows={2}
+                  rows={3}
                   required
                   value={form.description}
                   onChange={(e) => setForm({ ...form, description: e.target.value })}
-                  className="w-full p-2.5 bg-vs-surface-2 border border-vs-border rounded-xl text-vs-text focus:outline-none focus:border-indigo-500"
+                  className={inputClass}
                 />
               </div>
 
-              <div className="border-t border-vs-border pt-4 space-y-3">
-                <h4 className="font-bold text-indigo-500 dark:text-indigo-400">Assignment Challenge Setup</h4>
-                
-                <div>
-                  <label className="block font-semibold text-vs-text mb-1">Assignment Title</label>
-                  <input
-                    type="text"
-                    required
-                    value={form.assignment.title}
-                    onChange={(e) => setForm({
-                      ...form,
-                      assignment: { ...form.assignment, title: e.target.value }
-                    })}
-                    className="w-full p-2.5 bg-vs-surface-2 border border-vs-border rounded-xl text-vs-text focus:outline-none focus:border-indigo-500"
-                  />
+              {error && (
+                <div className="p-3 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded text-xs text-red-600 dark:text-red-400">
+                  {error}
                 </div>
+              )}
 
-                <div>
-                  <label className="block font-semibold text-vs-text mb-1">Assignment Prompt</label>
-                  <textarea
-                    rows={3}
-                    required
-                    value={form.assignment.prompt}
-                    onChange={(e) => setForm({
-                      ...form,
-                      assignment: { ...form.assignment, prompt: e.target.value }
-                    })}
-                    className="w-full p-2.5 bg-vs-surface-2 border border-vs-border rounded-xl text-vs-text focus:outline-none focus:border-indigo-500"
-                  />
-                </div>
-              </div>
-
-              <div className="pt-4 border-t border-vs-border flex justify-end gap-3">
-                <button
-                  type="button"
-                  onClick={() => setShowModal(false)}
-                  className="px-4 py-2 bg-vs-surface-2 hover:bg-vs-surface text-vs-muted hover:text-vs-text rounded-xl font-semibold btn-scale border border-vs-border"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={submitting}
-                  className="px-6 py-2 bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white rounded-xl font-bold shadow-lg btn-scale"
-                >
-                  {submitting ? 'Saving...' : 'Save Course'}
-                </button>
-              </div>
+              <button
+                type="submit"
+                disabled={submitting}
+                className="w-full py-2.5 bg-vs-accent hover:bg-vs-accent-hover text-white font-semibold rounded text-xs transition-colors btn-scale"
+              >
+                {submitting ? 'Saving...' : editingCourse ? 'Update Course' : 'Create Course'}
+              </button>
             </form>
-
           </div>
         </div>
       )}

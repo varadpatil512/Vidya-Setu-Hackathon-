@@ -350,24 +350,24 @@ export default function ClassroomPage() {
         </div>
 
         {/* Navigation Tabs */}
-        <div className="flex items-center gap-2 bg-vs-surface-2 p-1 rounded-xl border border-vs-border">
+        <div className="flex items-center gap-1.5 bg-vs-surface-2 p-1 rounded border border-vs-border">
           <button
             onClick={() => setActiveTab('video')}
-            className={`px-4 py-2 rounded-lg text-xs font-semibold transition-all btn-scale flex items-center gap-2 ${
+            className={`px-4 py-2 rounded text-xs font-semibold transition-all btn-scale flex items-center gap-2 ${
               activeTab === 'video'
-                ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
+                ? 'bg-vs-accent text-white'
                 : 'text-vs-muted hover:text-vs-text'
             }`}
           >
             <Play className="w-3.5 h-3.5" />
             Videos & Modules
           </button>
-          
+
           <button
             onClick={() => setActiveTab('notes')}
-            className={`px-4 py-2 rounded-lg text-xs font-semibold transition-all btn-scale flex items-center gap-2 ${
+            className={`px-4 py-2 rounded text-xs font-semibold transition-all btn-scale flex items-center gap-2 ${
               activeTab === 'notes'
-                ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
+                ? 'bg-vs-accent text-white'
                 : 'text-vs-muted hover:text-vs-text'
             }`}
           >
@@ -377,9 +377,9 @@ export default function ClassroomPage() {
 
           <button
             onClick={() => setActiveTab('assignment')}
-            className={`px-4 py-2 rounded-lg text-xs font-semibold transition-all btn-scale flex items-center gap-2 ${
+            className={`px-4 py-2 rounded text-xs font-semibold transition-all btn-scale flex items-center gap-2 ${
               activeTab === 'assignment'
-                ? 'bg-purple-600 text-white shadow-md shadow-purple-600/30'
+                ? 'bg-vs-accent text-white'
                 : 'text-vs-muted hover:text-vs-text'
             }`}
           >
