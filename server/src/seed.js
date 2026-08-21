@@ -56,7 +56,7 @@ const courses = [
     description: 'Master structural markup and basic styling. Learn HTML tags, CSS selectors, and properties, then complete a direct code challenge verified by AI viva.',
     category: 'Web Development',
     price: 399,
-    thumbnail: 'https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?w=600',
+    thumbnail: 'https://res.cloudinary.com/drbvpdn4t/image/upload/v1787310787/magnific_modern-htmlcss-course-thu_WDdaxSgcXe.png',
     instructor: 'Ananya Sharma',
     skill: 'HTML & CSS Fundamentals',
     videos: htmlCssVideos,
@@ -75,7 +75,7 @@ const courses = [
     description: 'Learn logic flow and branching in Python. Practice if, elif, and else statements, then submit your solution for AI viva verification.',
     category: 'Programming',
     price: 499,
-    thumbnail: 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=600',
+    thumbnail: 'https://res.cloudinary.com/drbvpdn4t/image/upload/v1787311515/ChatGPT_Image_Aug_21_2026_04_55_03_PM.png',
     instructor: 'Rohan Verma',
     skill: 'Python Conditionals',
     videos: pythonVideos,
@@ -94,7 +94,7 @@ const courses = [
     description: 'Interact with webpage elements dynamically. Master querySelector, element styles, and click handlers, followed by an AI viva interview.',
     category: 'Web Development',
     price: 499,
-    thumbnail: 'https://images.unsplash.com/photo-1579468118864-1b9ea3181be6?w=600',
+    thumbnail: 'https://res.cloudinary.com/drbvpdn4t/image/upload/v1787312047/ChatGPT_Image_Aug_21_2026_05_03_58_PM.png',
     instructor: 'Meera Iyer',
     skill: 'JavaScript DOM Basics',
     videos: jsVideos,
@@ -113,7 +113,7 @@ const courses = [
     description: 'Learn relational databases and SQL syntax. Write SELECT statements, filter with WHERE clauses, and prove your database skills.',
     category: 'Data & Databases',
     price: 599,
-    thumbnail: 'https://images.unsplash.com/photo-1544383835-bda2bc66a55d?w=600',
+    thumbnail: 'https://res.cloudinary.com/drbvpdn4t/image/upload/v1787311737/ChatGPT_Image_Aug_21_2026_04_58_43_PM.png',
     instructor: 'Vikram Malhotra',
     skill: 'SQL Fundamentals',
     videos: sqlVideos,
@@ -132,7 +132,7 @@ const courses = [
     description: 'Build modern responsive web layouts with Flexbox. Learn flex-direction, alignment, and centering techniques, verified through applied challenge and viva.',
     category: 'Web Development',
     price: 449,
-    thumbnail: 'https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?w=600',
+    thumbnail: 'https://res.cloudinary.com/drbvpdn4t/image/upload/v1787311905/ChatGPT_Image_Aug_21_2026_05_01_37_PM.png',
     instructor: 'Sneha Kapoor',
     skill: 'CSS Layout (Flexbox)',
     videos: flexboxVideos,
@@ -183,7 +183,7 @@ export async function seedDatabase({ silentIfNotEmpty = false, force = false } =
 }
 
 // run directly: npm run seed (uses MONGO_URI, or in-memory DB if none set)
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && process.argv[1].includes('seed.js')) {
   connectDB()
     .then(() => seedDatabase({ force: true }))
     .then(() => mongoose.disconnect())
@@ -193,3 +193,4 @@ if (import.meta.url === `file://${process.argv[1]}`) {
       process.exit(1);
     });
 }
+
