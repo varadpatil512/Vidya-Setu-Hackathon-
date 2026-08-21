@@ -4,7 +4,7 @@ export async function connectDB() {
   const uri = process.env.MONGO_URI;
   if (uri) {
     await mongoose.connect(uri);
-    console.log('[db] connected to MongoDB');
+    console.log(`[db] successfully connected to MongoDB Atlas cloud database (${mongoose.connection.host})`);
     return;
   }
   if (process.env.MONGO_MEMORY === 'true') {
