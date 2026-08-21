@@ -15,7 +15,7 @@ const htmlCssVideos = [
   { title: 'CSS Selectors & Syntax', url: 'https://www.youtube.com/watch?v=1PnVor36_40', durationSec: 100 },
   { title: 'Color, Typography & Fonts', url: 'https://www.youtube.com/watch?v=yfoY53QXEnI', durationSec: 110 },
   { title: 'Inline vs External CSS', url: 'https://www.youtube.com/watch?v=zJSY8tbf_ys', durationSec: 80 },
-  { title: 'Building Your First Web Component', url: 'https://www.youtube.com/watch?v=cvvwmlBJ4g8', durationSec: 120 },
+  { title: 'Building Your First Web Component', url: 'https://youtu.be/XtwTjwUZSTs?si=VMk3zJpwFbw1wOQ0', durationSec: 120 },
 ];
 
 const pythonVideos = [
@@ -23,7 +23,7 @@ const pythonVideos = [
   { title: 'Booleans & Comparison Operators', url: 'https://www.youtube.com/watch?v=PkZNo7MFNFg', durationSec: 100 },
   { title: 'If & Else Decision Flow', url: 'https://www.youtube.com/watch?v=hdI2bqOjy3k', durationSec: 110 },
   { title: 'The Modulo Operator (%) Explained', url: 'https://www.youtube.com/watch?v=zJSY8tbf_ys', durationSec: 80 },
-  { title: 'Writing Clean Conditionals', url: 'https://www.youtube.com/watch?v=cvvwmlBJ4g8', durationSec: 120 },
+  { title: 'Writing Clean Conditionals', url: 'https://www.youtube.com/watch?v=zJSY8tbf_ys', durationSec: 120 },
 ];
 
 const jsVideos = [
@@ -55,7 +55,7 @@ const courses = [
     title: 'HTML & CSS Basics Sprint',
     description: 'Master structural markup and basic styling. Learn HTML tags, CSS selectors, and properties, then complete a direct code challenge verified by AI viva.',
     category: 'Web Development',
-    price: 399,
+    price: 299,
     thumbnail: 'https://res.cloudinary.com/drbvpdn4t/image/upload/v1787310787/magnific_modern-htmlcss-course-thu_WDdaxSgcXe.png',
     instructor: 'Ananya Sharma',
     skill: 'HTML & CSS Fundamentals',
@@ -74,7 +74,7 @@ const courses = [
     title: 'Python Conditionals Essentials',
     description: 'Learn logic flow and branching in Python. Practice if, elif, and else statements, then submit your solution for AI viva verification.',
     category: 'Programming',
-    price: 499,
+    price: 699,
     thumbnail: 'https://res.cloudinary.com/drbvpdn4t/image/upload/v1787311515/ChatGPT_Image_Aug_21_2026_04_55_03_PM.png',
     instructor: 'Rohan Verma',
     skill: 'Python Conditionals',
@@ -112,7 +112,7 @@ const courses = [
     title: 'SQL Querying Fundamentals',
     description: 'Learn relational databases and SQL syntax. Write SELECT statements, filter with WHERE clauses, and prove your database skills.',
     category: 'Data & Databases',
-    price: 599,
+    price: 449,
     thumbnail: 'https://res.cloudinary.com/drbvpdn4t/image/upload/v1787311737/ChatGPT_Image_Aug_21_2026_04_58_43_PM.png',
     instructor: 'Vikram Malhotra',
     skill: 'SQL Fundamentals',
@@ -131,7 +131,7 @@ const courses = [
     title: 'CSS Flexbox Layout Mastery',
     description: 'Build modern responsive web layouts with Flexbox. Learn flex-direction, alignment, and centering techniques, verified through applied challenge and viva.',
     category: 'Web Development',
-    price: 449,
+    price: 249,
     thumbnail: 'https://res.cloudinary.com/drbvpdn4t/image/upload/v1787311905/ChatGPT_Image_Aug_21_2026_05_01_37_PM.png',
     instructor: 'Sneha Kapoor',
     skill: 'CSS Layout (Flexbox)',

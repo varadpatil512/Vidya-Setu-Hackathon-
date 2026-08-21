@@ -1,9 +1,15 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { coursesAPI, enrollmentsAPI, notesAPI, submissionsAPI, errMsg } from '../lib/api';
 import CodeMirror from '@uiw/react-codemirror';
+import { html } from '@codemirror/lang-html';
+import { css } from '@codemirror/lang-css';
 import { javascript } from '@codemirror/lang-javascript';
+import { python } from '@codemirror/lang-python';
+import { sql } from '@codemirror/lang-sql';
+import { EditorView, keymap } from '@codemirror/view';
+import { indentWithTab } from '@codemirror/commands';
 import { oneDark } from '@codemirror/theme-one-dark';
 import { 
   Play, 
@@ -23,6 +29,31 @@ import {
   Check
 } from 'lucide-react';
 
+const getLanguageExtension = (lang) => {
+  switch (String(lang || '').toLowerCase()) {
+    case 'html':
+      return html();
+    case 'css':
+      return css();
+    case 'javascript':
+    case 'js':
+      return javascript({ jsx: true });
+    case 'python':
+    case 'py':
+      return python();
+    case 'sql':
+      return sql();
+    default:
+      return [];
+  }
+};
+
+const getYouTubeId = (url) => {
+  if (!url) return null;
+  const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
+  return match ? match[1] : null;
+};
+
 export default function ClassroomPage() {
   const { id: courseId } = useParams();
   const { user } = useAuth();
@@ -32,6 +63,12 @@ export default function ClassroomPage() {
   const [enrollment, setEnrollment] = useState(null);
   const [activeTab, setActiveTab] = useState('video'); // 'video' | 'notes' | 'assignment'
   const [currentVideoIdx, setCurrentVideoIdx] = useState(0);
+  const [canMarkWatched, setCanMarkWatched] = useState(false);
+  const [useHtmlFallback, setUseHtmlFallback] = useState(false);
+
+  useEffect(() => {
+    setUseHtmlFallback(false);
+  }, [currentVideoIdx]);
 
   // Notes state
   const [notes, setNotes] = useState('');
@@ -51,12 +88,18 @@ export default function ClassroomPage() {
   const [error, setError] = useState('');
 
   const lastLenRef = useRef(0);
+  const videoRef = useRef(null);
 
   useEffect(() => {
     fetchCourseData();
     fetchNotesData();
     fetchSubmissionsData();
   }, [courseId]);
+
+  useEffect(() => {
+    const isAlreadyWatched = !!enrollment?.videoWatched?.[currentVideoIdx];
+    setCanMarkWatched(isAlreadyWatched);
+  }, [currentVideoIdx, enrollment]);
 
   const fetchCourseData = async () => {
     try {
@@ -117,10 +160,92 @@ export default function ClassroomPage() {
     try {
       const res = await enrollmentsAPI.markVideoWatched(courseId, index, true);
       setEnrollment(res.data);
+      setCanMarkWatched(true);
     } catch (err) {
       console.error(err);
     }
   };
+
+  // HTML5 Video 90% duration tracker
+  const handleTimeUpdate = (e) => {
+    const { currentTime, duration } = e.target;
+    if (duration > 0 && currentTime / duration >= 0.9) {
+      if (!enrollment?.videoWatched?.[currentVideoIdx]) {
+        setCanMarkWatched(true);
+        handleVideoWatched(currentVideoIdx);
+      }
+    }
+  };
+
+  const currentVideoUrl = course?.videos?.[currentVideoIdx]?.url || '';
+  const ytId = getYouTubeId(currentVideoUrl);
+
+  // YouTube embed postMessage & IFrame API 90% threshold tracker
+  useEffect(() => {
+    if (!ytId) return;
+
+    let interval;
+
+    const handleWindowMessage = (event) => {
+      try {
+        const data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
+        if (data && data.info) {
+          const { currentTime, duration } = data.info;
+          if (duration > 0 && currentTime / duration >= 0.9) {
+            if (!enrollment?.videoWatched?.[currentVideoIdx]) {
+              setCanMarkWatched(true);
+              handleVideoWatched(currentVideoIdx);
+            }
+          }
+        }
+      } catch (err) {
+        // ignore non-json messages
+      }
+    };
+
+    window.addEventListener('message', handleWindowMessage);
+
+    let ytPlayer;
+    if (window.YT && window.YT.Player) {
+      try {
+        ytPlayer = new window.YT.Player('yt-video-frame', {
+          events: {
+            onStateChange: (evt) => {
+              if (evt.data === window.YT.PlayerState.PLAYING) {
+                interval = setInterval(() => {
+                  if (ytPlayer && typeof ytPlayer.getCurrentTime === 'function' && typeof ytPlayer.getDuration === 'function') {
+                    const cur = ytPlayer.getCurrentTime();
+                    const dur = ytPlayer.getDuration();
+                    if (dur > 0 && cur / dur >= 0.9) {
+                      if (!enrollment?.videoWatched?.[currentVideoIdx]) {
+                        setCanMarkWatched(true);
+                        handleVideoWatched(currentVideoIdx);
+                      }
+                      if (interval) clearInterval(interval);
+                    }
+                  }
+                }, 800);
+              } else {
+                if (interval) clearInterval(interval);
+              }
+            },
+          },
+        });
+      } catch (e) {}
+    } else {
+      interval = setInterval(() => {
+        const frame = document.getElementById('yt-video-frame');
+        if (frame && frame.contentWindow) {
+          frame.contentWindow.postMessage(JSON.stringify({ event: 'listening' }), '*');
+        }
+      }, 1000);
+    }
+
+    return () => {
+      window.removeEventListener('message', handleWindowMessage);
+      if (interval) clearInterval(interval);
+    };
+  }, [currentVideoIdx, ytId, enrollment]);
 
   const handleSaveNotes = async () => {
     try {
@@ -135,16 +260,35 @@ export default function ClassroomPage() {
     }
   };
 
-  // Locked Editor Paste Detection & Snapshot Logger
+  // Intercept & block copy-paste events
+  const handlePasteAttempt = (e) => {
+    e.preventDefault();
+    setPasteEvents((prev) => prev + 1);
+    const newSnap = { at: new Date().toISOString(), length: codeContent.length || textContent.length, content: '[PASTE_BLOCKED]' };
+    setSnapshots((prev) => [...prev.slice(-50), newSnap]);
+  };
+
+  // Block right-click context menu in editor
+  const handleContextMenu = (e) => {
+    e.preventDefault();
+  };
+
+  const editorDomEventHandlers = useMemo(() => {
+    return EditorView.domEventHandlers({
+      paste: (event) => {
+        event.preventDefault();
+        setPasteEvents((prev) => prev + 1);
+      },
+      contextmenu: (event) => {
+        event.preventDefault();
+      },
+    });
+  }, []);
+
   const handleCodeChange = (value) => {
     setCodeContent(value);
     const diff = Math.abs(value.length - lastLenRef.current);
     lastLenRef.current = value.length;
-
-    // Detect large paste (>150 chars jump)
-    if (diff > 150) {
-      setPasteEvents((prev) => prev + 1);
-    }
 
     // Log process snapshot
     const newSnap = { at: new Date().toISOString(), length: value.length };
@@ -170,7 +314,7 @@ export default function ClassroomPage() {
       }
     } catch (err) {
       setError(errMsg(err));
-    } fontally: {
+    } finally {
       setSubmitting(false);
     }
   };
@@ -194,6 +338,8 @@ export default function ClassroomPage() {
   const allVideosWatched = enrollment.videoWatched && enrollment.videoWatched.every(Boolean);
   const videosCount = course.videos?.length || 5;
   const currentVideo = course.videos?.[currentVideoIdx] || { title: `Module ${currentVideoIdx + 1}`, duration: '12:00', url: '' };
+
+  const isWatched = !!enrollment.videoWatched?.[currentVideoIdx];
 
   return (
     <div className="min-h-screen bg-slate-950 text-white pb-20">
@@ -255,45 +401,87 @@ export default function ClassroomPage() {
       {activeTab === 'video' && (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
           
-          {/* Main Video Screen */}
-          <div className="lg:col-span-2 space-y-6">
-            <div className="relative aspect-video bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden flex flex-col justify-center items-center group shadow-2xl">
-              <div className="absolute inset-0 bg-gradient-to-tr from-indigo-950/60 via-slate-950/80 to-purple-950/60" />
-              
-              <div className="relative z-10 text-center p-8 space-y-4">
-                <div className="w-16 h-16 rounded-2xl bg-indigo-600/80 text-white flex items-center justify-center mx-auto shadow-xl group-hover:scale-110 transition-transform">
-                  <Play className="w-8 h-8 fill-current ml-1" />
-                </div>
-                <div>
-                  <h3 className="text-xl font-bold text-white">{currentVideo.title}</h3>
-                  <p className="text-xs text-slate-400 mt-1">Duration: {currentVideo.duration}</p>
-                </div>
+            {/* Main Video Screen */}
+            <div className="lg:col-span-2 space-y-6">
+              <div className="relative aspect-video bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl flex flex-col justify-center items-center">
+                {ytId && !useHtmlFallback ? (
+                  <iframe
+                    key={ytId}
+                    id="yt-video-frame"
+                    src={`https://www.youtube.com/embed/${ytId}?autoplay=1&enablejsapi=1&origin=${encodeURIComponent(window.location.origin)}`}
+                    title={currentVideo.title}
+                    className="w-full h-full border-0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  />
+                ) : (
+                  <video
+                    key={currentVideoUrl + (useHtmlFallback ? '-fallback' : '')}
+                    ref={videoRef}
+                    src={!useHtmlFallback && currentVideo.url && !ytId ? currentVideo.url : "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4"}
+                    autoPlay
+                    controls
+                    className="w-full h-full object-cover"
+                    onTimeUpdate={handleTimeUpdate}
+                  />
+                )}
               </div>
 
-              <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between z-10 bg-slate-900/80 backdrop-blur-md p-3 rounded-xl border border-slate-800">
-                <span className="text-xs font-semibold text-slate-300">
-                  Module {currentVideoIdx + 1} of {videosCount}
-                </span>
-                
-                <button
-                  onClick={() => handleVideoWatched(currentVideoIdx)}
-                  className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
-                    enrollment.videoWatched?.[currentVideoIdx]
-                      ? 'bg-emerald-600/20 text-emerald-400 border border-emerald-500/40'
-                      : 'bg-indigo-600 text-white hover:bg-indigo-500'
-                  }`}
-                >
-                  <CheckCircle2 className="w-3.5 h-3.5" />
-                  {enrollment.videoWatched?.[currentVideoIdx] ? 'Watched' : 'Mark as Watched'}
-                </button>
+              {/* Status Bar Placed Below Video Player */}
+              <div className="p-4 bg-slate-900/90 border border-slate-800 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-lg">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-xl bg-indigo-500/10 border border-indigo-500/30 text-indigo-400 flex items-center justify-center font-bold text-xs">
+                    {currentVideoIdx + 1}
+                  </div>
+                  <div>
+                    <span className="text-[11px] uppercase tracking-wider text-slate-400 font-semibold block">
+                      Module {currentVideoIdx + 1} of {videosCount}
+                    </span>
+                    <h3 className="text-sm font-bold text-white line-clamp-1">{currentVideo.title}</h3>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  {ytId && (
+                    <button
+                      onClick={() => setUseHtmlFallback((prev) => !prev)}
+                      className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-slate-200 text-[11px] font-semibold border border-slate-700 transition-all"
+                    >
+                      {useHtmlFallback ? 'Switch to YouTube Player' : 'Fallback HTML5 Player'}
+                    </button>
+                  )}
+
+                  <button
+                    onClick={() => handleVideoWatched(currentVideoIdx)}
+                    disabled={!canMarkWatched && !isWatched}
+                    title={
+                      !canMarkWatched && !isWatched
+                        ? 'Watch at least 90% of the video to continue'
+                        : ''
+                    }
+                    className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
+                      isWatched
+                        ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/50 shadow-sm shadow-emerald-500/10'
+                        : canMarkWatched
+                        ? 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-600/30 cursor-pointer'
+                        : 'bg-slate-800 text-slate-500 border border-slate-700 cursor-not-allowed opacity-60'
+                    }`}
+                  >
+                    <CheckCircle2 className="w-4 h-4" />
+                    {isWatched
+                      ? 'Watched ✓'
+                      : canMarkWatched
+                      ? 'Mark as Watched'
+                      : 'Watch 90% to Continue'}
+                  </button>
+                </div>
               </div>
-            </div>
 
             <div className="p-6 bg-slate-900/60 border border-slate-800 rounded-2xl space-y-3">
               <h3 className="text-lg font-bold text-white">About this Module</h3>
               <p className="text-xs text-slate-400 leading-relaxed">
-                Watch all video modules in sequence. Your notes are automatically synchronized per course.
-                Once all videos are completed, the Applied Challenge and AI Viva Interview will unlock.
+                Watch all video modules in sequence (at least 90% duration). Once you reach 90%, the module will automatically mark watched and turn green.
+                When all modules are completed, the Applied Assignment Challenge and AI Viva Interview will unlock.
               </p>
             </div>
           </div>
@@ -327,21 +515,23 @@ export default function ClassroomPage() {
                       key={idx}
                       onClick={() => setCurrentVideoIdx(idx)}
                       className={`w-full p-3 rounded-xl text-left border transition-all flex items-center justify-between ${
-                        isCurrent
+                        watched
+                          ? 'bg-emerald-950/20 border-emerald-500/40 text-emerald-300'
+                          : isCurrent
                           ? 'bg-indigo-600/20 border-indigo-500/50 text-indigo-300'
                           : 'bg-slate-950/60 hover:bg-slate-950 border-slate-800/80 text-slate-300'
                       }`}
                     >
                       <div className="flex items-center gap-3">
                         <div className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold ${
-                          watched ? 'bg-emerald-500/20 text-emerald-400' : 'bg-slate-800 text-slate-400'
+                          watched ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-slate-800 text-slate-400'
                         }`}>
-                          {watched ? <Check className="w-4 h-4" /> : idx + 1}
+                          {watched ? <Check className="w-4 h-4 text-emerald-400" /> : idx + 1}
                         </div>
                         <div>
                           <h4 className="text-xs font-semibold line-clamp-1">{vid.title}</h4>
                           <span className="text-[10px] text-slate-500 flex items-center gap-1 mt-0.5">
-                            <Clock className="w-3 h-3" /> {vid.duration}
+                            <Clock className="w-3 h-3" /> {vid.duration || '10:00'}
                           </span>
                         </div>
                       </div>
@@ -433,16 +623,16 @@ export default function ClassroomPage() {
                   <div className="flex items-center justify-between text-xs font-semibold">
                     <span className="text-slate-400 flex items-center gap-1.5">
                       <AlertTriangle className="w-4 h-4 text-amber-400" />
-                      Paste Events Detected
+                      Paste Attempts Blocked
                     </span>
                     <span className={`px-2 py-0.5 rounded text-xs font-bold ${
                       pasteEvents > 0 ? 'bg-rose-500/20 text-rose-400' : 'bg-emerald-500/20 text-emerald-400'
                     }`}>
-                      {pasteEvents} paste event(s)
+                      {pasteEvents} attempt(s) blocked
                     </span>
                   </div>
                   <p className="text-[11px] text-slate-500">
-                    VidyaSetu logs periodic code snapshots. Large copy-pastes will increase AI viva scrutiny or trigger teacher review.
+                    Direct copy-pasting and right-click paste are blocked in the editor. All paste attempts are logged.
                   </p>
                 </div>
               </div>
@@ -477,15 +667,21 @@ export default function ClassroomPage() {
             {/* Locked Editor & Test Runner */}
             <div className="lg:col-span-2 space-y-6">
               
-              {/* Code/Text Editor */}
-              <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl">
+              {/* Code/Text Editor Container with paste and right-click blocking */}
+              <div 
+                onPaste={handlePasteAttempt}
+                onContextMenu={handleContextMenu}
+                className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl"
+              >
                 
                 <div className="p-4 bg-slate-950 border-b border-slate-800 flex items-center justify-between text-xs font-semibold text-slate-400">
                   <div className="flex items-center gap-2">
                     <Terminal className="w-4 h-4 text-indigo-400" />
                     <span>Locked Submission Editor ({course.assignment.type.toUpperCase()})</span>
                   </div>
-                  <span className="text-[11px] text-slate-500 font-mono">JS Sandbox Runtime</span>
+                  <span className="text-[11px] text-indigo-400 font-mono uppercase bg-indigo-500/10 px-2 py-0.5 rounded border border-indigo-500/30">
+                    {course.assignment?.language || 'plain text'}
+                  </span>
                 </div>
 
                 {course.assignment.type === 'code' ? (
@@ -494,7 +690,36 @@ export default function ClassroomPage() {
                       value={codeContent}
                       height="380px"
                       theme={oneDark}
-                      extensions={[javascript({ jsx: true })]}
+                      basicSetup={{
+                        lineNumbers: true,
+                        highlightActiveLineGutter: true,
+                        highlightSpecialChars: true,
+                        foldGutter: true,
+                        drawSelection: true,
+                        dropCursor: true,
+                        allowMultipleSelections: true,
+                        indentOnInput: true,
+                        syntaxHighlighting: true,
+                        bracketMatching: true,
+                        closeBrackets: true,
+                        autocompletion: true,
+                        rectangularSelection: true,
+                        crosshairCursor: true,
+                        highlightActiveLine: true,
+                        highlightSelectionMatches: true,
+                        closeBracketsKeymap: true,
+                        defaultKeymap: true,
+                        searchKeymap: true,
+                        historyKeymap: true,
+                        foldKeymap: true,
+                        completionKeymap: true,
+                        lintKeymap: true,
+                      }}
+                      extensions={[
+                        getLanguageExtension(course.assignment?.language),
+                        keymap.of([indentWithTab]),
+                        editorDomEventHandlers,
+                      ]}
                       onChange={handleCodeChange}
                     />
                   </div>
@@ -503,6 +728,8 @@ export default function ClassroomPage() {
                     rows={14}
                     value={textContent}
                     onChange={(e) => setTextContent(e.target.value)}
+                    onPaste={handlePasteAttempt}
+                    onContextMenu={handleContextMenu}
                     placeholder="Write your text submission here..."
                     className="w-full p-4 bg-slate-950 text-sm text-slate-200 placeholder-slate-600 focus:outline-none font-mono"
                   />

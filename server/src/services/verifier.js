@@ -52,9 +52,10 @@ export function verifyCode(code, testCases = []) {
 }
 
 /**
- * Lightweight rubric check for text submissions: coverage of rubric terms
- * plus a minimum length. Used as the verification gate for text assignments
- * (the real judgement happens later in the AI interview step).
+ * Lightweight rubric check for text submissions: coverage of rubric terms only.
+ * A submission passes when at least 50% of the rubric terms are present in the text.
+ * (The real judgement happens later in the AI interview step.)
+ * No length-based check — short but complete answers are accepted.
  */
 export function verifyText(text, rubric = '') {
   const terms = rubric
@@ -63,13 +64,12 @@ export function verifyText(text, rubric = '') {
     .filter(t => t.length > 3);
   const lower = String(text || '').toLowerCase();
   const covered = terms.filter(t => lower.includes(t));
-  const longEnough = String(text || '').trim().length >= 150;
-  const passed = longEnough && (terms.length === 0 || covered.length / terms.length >= 0.5);
+  const passed = terms.length === 0 || covered.length / terms.length >= 0.5;
   return {
     passed,
     results: [
-      { name: 'Minimum length (150 chars)', passed: longEnough, expected: '>= 150 chars', actual: `${String(text || '').trim().length} chars` },
-      { name: 'Rubric term coverage', passed: terms.length === 0 || covered.length / terms.length >= 0.5, expected: terms.length ? terms.join(', ') : 'no rubric terms', actual: covered.join(', ') || 'none' },
+      { name: 'Rubric term coverage', passed, expected: terms.length ? terms.join(', ') : 'no rubric terms', actual: covered.join(', ') || 'none' },
     ],
   };
 }
+
