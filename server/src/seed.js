@@ -9,99 +9,141 @@ import Submission from './models/Submission.js';
 import Interview from './models/Interview.js';
 import TeacherReview from './models/TeacherReview.js';
 
-// Placeholder demo videos — swap for your real 1–2 minute recordings via the Admin panel.
+// Placeholder demo videos — 5 per course
+const htmlCssVideos = [
+  { title: 'HTML Tags & Document Structure', url: 'https://youtu.be/6qwOQe2BiYY?si=gn5JmGyjkHBFI61G', durationSec: 90 },
+  { title: 'CSS Selectors & Syntax', url: 'https://www.youtube.com/watch?v=1PnVor36_40', durationSec: 100 },
+  { title: 'Color, Typography & Fonts', url: 'https://www.youtube.com/watch?v=yfoY53QXEnI', durationSec: 110 },
+  { title: 'Inline vs External CSS', url: 'https://www.youtube.com/watch?v=zJSY8tbf_ys', durationSec: 80 },
+  { title: 'Building Your First Web Component', url: 'https://www.youtube.com/watch?v=cvvwmlBJ4g8', durationSec: 120 },
+];
+
+const pythonVideos = [
+  { title: 'Python Syntax & Variables', url: 'https://www.youtube.com/watch?v=kqtD5dpn9C8', durationSec: 90 },
+  { title: 'Booleans & Comparison Operators', url: 'https://www.youtube.com/watch?v=PkZNo7MFNFg', durationSec: 100 },
+  { title: 'If & Else Decision Flow', url: 'https://www.youtube.com/watch?v=hdI2bqOjy3k', durationSec: 110 },
+  { title: 'The Modulo Operator (%) Explained', url: 'https://www.youtube.com/watch?v=zJSY8tbf_ys', durationSec: 80 },
+  { title: 'Writing Clean Conditionals', url: 'https://www.youtube.com/watch?v=cvvwmlBJ4g8', durationSec: 120 },
+];
+
 const jsVideos = [
-  { title: 'Variables & Types in 90s', url: 'https://www.youtube.com/watch?v=W6NZfCO5SIk', durationSec: 90 },
-  { title: 'Functions Fast', url: 'https://www.youtube.com/watch?v=PkZNo7MFNFg', durationSec: 100 },
-  { title: 'Arrays & Loops Quick Tour', url: 'https://www.youtube.com/watch?v=hdI2bqOjy3k', durationSec: 110 },
-  { title: 'Strings Essentials', url: 'https://www.youtube.com/watch?v=zJSY8tbf_ys', durationSec: 80 },
-  { title: 'Putting It Together', url: 'https://www.youtube.com/watch?v=cvvwmlBJ4g8', durationSec: 120 },
+  { title: 'Selecting Elements with querySelector', url: 'https://www.youtube.com/watch?v=l72i5B5m4jM', durationSec: 90 },
+  { title: 'DOM Properties & Style Mutations', url: 'https://www.youtube.com/watch?v=ea0o2EITo5s', durationSec: 100 },
+  { title: 'Click Events & onclick Handlers', url: 'https://www.youtube.com/watch?v=XF1_MlZ5l6w', durationSec: 110 },
+  { title: 'Changing Dynamic Background Colors', url: 'https://www.youtube.com/watch?v=8f7OI5jAAys', durationSec: 80 },
+  { title: 'Building Interactive Buttons', url: 'https://www.youtube.com/watch?v=3PHXvlpOkf4', durationSec: 120 },
 ];
 
-const reactVideos = [
-  { title: 'What is React?', url: 'https://www.youtube.com/watch?v=Tn6-PIqc4UM', durationSec: 100 },
-  { title: 'useState in 2 Minutes', url: 'https://www.youtube.com/watch?v=SqcY0GlETPk', durationSec: 110 },
-  { title: 'useEffect Basics', url: 'https://www.youtube.com/watch?v=bMknfKXIFA8', durationSec: 95 },
-  { title: 'Components & Props', url: 'https://www.youtube.com/watch?v=TNhaCS_cuX0', durationSec: 105 },
-  { title: 'Hooks Pitfalls to Avoid', url: 'https://www.youtube.com/watch?v=1wZo1R9Xg0M', durationSec: 115 },
+const sqlVideos = [
+  { title: 'Relational Database Fundamentals', url: 'https://www.youtube.com/watch?v=HXV3zeQKqGY', durationSec: 90 },
+  { title: 'The SELECT Statement', url: 'https://www.youtube.com/watch?v=PkZNo7MFNFg', durationSec: 100 },
+  { title: 'FROM & Table References', url: 'https://www.youtube.com/watch?v=hdI2bqOjy3k', durationSec: 110 },
+  { title: 'Filtering Rows with WHERE', url: 'https://www.youtube.com/watch?v=zJSY8tbf_ys', durationSec: 80 },
+  { title: 'Numeric & Comparison Conditions', url: 'https://www.youtube.com/watch?v=cvvwmlBJ4g8', durationSec: 120 },
 ];
 
-const domVideos = [
-  { title: 'The DOM in 100 Seconds', url: 'https://www.youtube.com/watch?v=l72i5B5m4jM', durationSec: 100 },
-  { title: 'querySelector Crash', url: 'https://www.youtube.com/watch?v=ea0o2EITo5s', durationSec: 90 },
-  { title: 'Events Simply', url: 'https://www.youtube.com/watch?v=XF1_MlZ5l6w', durationSec: 100 },
-  { title: 'map/filter/reduce Speedrun', url: 'https://www.youtube.com/watch?v=8f7OI5jAAys', durationSec: 110 },
-  { title: 'Refactor Like a Pro', url: 'https://www.youtube.com/watch?v=3PHXvlpOkf4', durationSec: 105 },
+const flexboxVideos = [
+  { title: 'Flexbox Containers & Items', url: 'https://www.youtube.com/watch?v=fYq5PXgSsbE', durationSec: 90 },
+  { title: 'Main Axis vs Cross Axis', url: 'https://www.youtube.com/watch?v=PkZNo7MFNFg', durationSec: 100 },
+  { title: 'justify-content Deep Dive', url: 'https://www.youtube.com/watch?v=hdI2bqOjy3k', durationSec: 110 },
+  { title: 'align-items & Vertical Alignment', url: 'https://www.youtube.com/watch?v=zJSY8tbf_ys', durationSec: 80 },
+  { title: 'Perfect Centering Patterns', url: 'https://www.youtube.com/watch?v=cvvwmlBJ4g8', durationSec: 120 },
 ];
 
 const courses = [
   {
-    title: 'JavaScript Fundamentals Sprint',
-    description: 'Five 90-second videos, one real challenge. Finish the videos, pass the code verifier, clear the AI interview — earn a verified JavaScript skill badge.',
-    category: 'Programming',
-    price: 499,
-    thumbnail: 'https://images.unsplash.com/photo-1579468118864-1b9ea3181be6?w=600',
-    instructor: 'Ananya Sharma',
-    skill: 'JavaScript Fundamentals',
-    videos: jsVideos,
-    assignment: {
-      title: 'Palindrome & FizzBuzz Utilities',
-      prompt: 'Write two functions:\n1. isPalindrome(str) — returns true if the string reads the same reversed (ignore case, spaces and punctuation).\n2. fizzbuzz(n) — for 1..n return an array where multiples of 3 are "Fizz", of 5 are "Buzz", of both "FizzBuzz", else the number itself.',
-      type: 'code',
-      language: 'javascript',
-      starterCode: 'function isPalindrome(str) {\n  // your code\n}\n\nfunction fizzbuzz(n) {\n  // your code\n}\n',
-      rubric: '',
-      testCases: [
-        { fn: 'isPalindrome', args: ['A man, a plan, a canal: Panama'], expected: true },
-        { fn: 'isPalindrome', args: ['hello'], expected: false },
-        { fn: 'isPalindrome', args: [''], expected: true },
-        { fn: 'fizzbuzz', args: [5], expected: [1, 2, 'Fizz', 4, 'Buzz'] },
-        { fn: 'fizzbuzz', args: [15], expected: [1, 2, 'Fizz', 4, 'Buzz', 'Fizz', 7, 8, 'Fizz', 'Buzz', 11, 'Fizz', 13, 14, 'FizzBuzz'] },
-      ],
-    },
-  },
-  {
-    title: 'React Hooks Essentials',
-    description: 'Five micro-lessons on state and effects, verified by a written design explanation plus an AI viva that checks you can defend your choices.',
+    title: 'HTML & CSS Basics Sprint',
+    description: 'Master structural markup and basic styling. Learn HTML tags, CSS selectors, and properties, then complete a direct code challenge verified by AI viva.',
     category: 'Web Development',
-    price: 599,
-    thumbnail: 'https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=600',
-    instructor: 'Rohan Verma',
-    skill: 'React Hooks',
-    videos: reactVideos,
+    price: 399,
+    thumbnail: 'https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?w=600',
+    instructor: 'Ananya Sharma',
+    skill: 'HTML & CSS Fundamentals',
+    videos: htmlCssVideos,
     assignment: {
-      title: 'Defend a useEffect Design',
-      prompt: 'In 200+ words, explain how you would fetch data in a React component using useEffect: the dependency array, cleanup, race conditions, and why you would not fetch in the render body. Use concrete code references.',
+      title: 'Styled Heading Challenge',
+      prompt: 'Write a heading in HTML and give it a color using CSS. Paste your code as your answer.',
       type: 'text',
-      language: 'javascript',
+      language: 'html',
       starterCode: '',
-      rubric: 'useEffect, dependency array, cleanup, race condition, loading state, error handling, stale closure',
+      rubric: 'h1, h2, h3, color, style',
       testCases: [],
     },
   },
   {
-    title: 'DOM Manipulation & Array Methods',
-    description: 'Select, listen, transform. A short sharp sprint ending in a code-verified challenge and an AI interview about your own solution.',
+    title: 'Python Conditionals Essentials',
+    description: 'Learn logic flow and branching in Python. Practice if, elif, and else statements, then submit your solution for AI viva verification.',
     category: 'Programming',
-    price: 399,
-    thumbnail: 'https://images.unsplash.com/photo-1627398242457-45c50f8fc400?w=600',
-    instructor: 'Meera Iyer',
-    skill: 'DOM & Array Methods',
-    videos: domVideos,
+    price: 499,
+    thumbnail: 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=600',
+    instructor: 'Rohan Verma',
+    skill: 'Python Conditionals',
+    videos: pythonVideos,
     assignment: {
-      title: 'Text Statistics Toolkit',
-      prompt: 'Write three pure functions:\n1. wordCount(sentence) — number of words (split on whitespace).\n2. topWord(sentence) — the most frequent word, lowercase; ties broken by first appearance.\n3. titleCase(sentence) — capitalise the first letter of every word.',
-      type: 'code',
+      title: 'Even or Odd Checker',
+      prompt: 'Take one number and, using if-else, write code that checks whether it is Even or Odd. No function needed — just the plain if-else code. Paste your code as your answer.',
+      type: 'text',
+      language: 'python',
+      starterCode: '',
+      rubric: 'if, else, %, even, odd',
+      testCases: [],
+    },
+  },
+  {
+    title: 'JavaScript DOM Basics',
+    description: 'Interact with webpage elements dynamically. Master querySelector, element styles, and click handlers, followed by an AI viva interview.',
+    category: 'Web Development',
+    price: 499,
+    thumbnail: 'https://images.unsplash.com/photo-1579468118864-1b9ea3181be6?w=600',
+    instructor: 'Meera Iyer',
+    skill: 'JavaScript DOM Basics',
+    videos: jsVideos,
+    assignment: {
+      title: 'Dynamic Button Styling',
+      prompt: 'Write code that changes a button\'s background color when clicked, using onclick and querySelector. No function wrapper needed — just the direct code. Paste your code as your answer.',
+      type: 'text',
       language: 'javascript',
-      starterCode: 'function wordCount(sentence) {\n  // your code\n}\n\nfunction topWord(sentence) {\n  // your code\n}\n\nfunction titleCase(sentence) {\n  // your code\n}\n',
-      rubric: '',
-      testCases: [
-        { fn: 'wordCount', args: ['the quick brown fox'], expected: 4 },
-        { fn: 'wordCount', args: [''], expected: 0 },
-        { fn: 'topWord', args: ['the cat and the dog'], expected: 'the' },
-        { fn: 'topWord', args: ['a b b a c'], expected: 'a' },
-        { fn: 'titleCase', args: ['hello world again'], expected: 'Hello World Again' },
-      ],
+      starterCode: '',
+      rubric: 'queryselector, onclick, style, background',
+      testCases: [],
+    },
+  },
+  {
+    title: 'SQL Querying Fundamentals',
+    description: 'Learn relational databases and SQL syntax. Write SELECT statements, filter with WHERE clauses, and prove your database skills.',
+    category: 'Data & Databases',
+    price: 599,
+    thumbnail: 'https://images.unsplash.com/photo-1544383835-bda2bc66a55d?w=600',
+    instructor: 'Vikram Malhotra',
+    skill: 'SQL Fundamentals',
+    videos: sqlVideos,
+    assignment: {
+      title: 'Student Filtering Query',
+      prompt: 'Write a SQL query to fetch all records from a students table where age is greater than 18. Paste your query as your answer.',
+      type: 'text',
+      language: 'sql',
+      starterCode: '',
+      rubric: 'select, from, where, age',
+      testCases: [],
+    },
+  },
+  {
+    title: 'CSS Flexbox Layout Mastery',
+    description: 'Build modern responsive web layouts with Flexbox. Learn flex-direction, alignment, and centering techniques, verified through applied challenge and viva.',
+    category: 'Web Development',
+    price: 449,
+    thumbnail: 'https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?w=600',
+    instructor: 'Sneha Kapoor',
+    skill: 'CSS Layout (Flexbox)',
+    videos: flexboxVideos,
+    assignment: {
+      title: 'Perfect Centering with Flexbox',
+      prompt: 'Write CSS that centers a div both horizontally and vertically using Flexbox. Paste your CSS as your answer.',
+      type: 'text',
+      language: 'css',
+      starterCode: '',
+      rubric: 'display: flex, justify-content, align-items, center',
+      testCases: [],
     },
   },
 ];
@@ -113,11 +155,23 @@ const demoUsers = [
   { name: 'Diya Student', email: 'diya@vidyasetu.dev', password: 'password123', role: 'STUDENT' },
 ];
 
-export async function seedDatabase({ silentIfNotEmpty = false } = {}) {
+export async function seedDatabase({ silentIfNotEmpty = false, force = false } = {}) {
   const userCount = await User.countDocuments();
-  if (userCount > 0) {
-    if (!silentIfNotEmpty) console.log('[seed] users already exist — skipping seed (drop the database first to reseed)');
+  if (userCount > 0 && !force) {
+    if (!silentIfNotEmpty) console.log('[seed] users already exist — skipping seed (pass force: true or drop database to reseed)');
     return;
+  }
+
+  if (force) {
+    await Promise.all([
+      User.deleteMany({}),
+      Course.deleteMany({}),
+      Enrollment.deleteMany({}),
+      Note.deleteMany({}),
+      Submission.deleteMany({}),
+      Interview.deleteMany({}),
+      TeacherReview.deleteMany({}),
+    ]);
   }
 
   const users = await User.create(demoUsers);
@@ -131,7 +185,7 @@ export async function seedDatabase({ silentIfNotEmpty = false } = {}) {
 // run directly: npm run seed (uses MONGO_URI, or in-memory DB if none set)
 if (import.meta.url === `file://${process.argv[1]}`) {
   connectDB()
-    .then(() => seedDatabase())
+    .then(() => seedDatabase({ force: true }))
     .then(() => mongoose.disconnect())
     .then(() => console.log('[seed] done'))
     .catch((err) => {
