@@ -68,6 +68,7 @@ const courses = [
       starterCode: '',
       rubric: 'h1, h2, h3, color, style',
       testCases: [],
+      questionCount: 2,
     },
   },
   {
@@ -87,6 +88,7 @@ const courses = [
       starterCode: '',
       rubric: 'if, else, %, even, odd',
       testCases: [],
+      questionCount: 2,
     },
   },
   {
@@ -106,6 +108,7 @@ const courses = [
       starterCode: '',
       rubric: 'queryselector, onclick, style, background',
       testCases: [],
+      questionCount: 5,
     },
   },
   {
@@ -125,6 +128,7 @@ const courses = [
       starterCode: '',
       rubric: 'select, from, where, age',
       testCases: [],
+      questionCount: 5,
     },
   },
   {
@@ -144,6 +148,7 @@ const courses = [
       starterCode: '',
       rubric: 'display: flex, justify-content, align-items, center',
       testCases: [],
+      questionCount: 5,
     },
   },
 ];

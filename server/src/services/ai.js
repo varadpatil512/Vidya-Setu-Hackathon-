@@ -35,7 +35,11 @@ async function callPythonService(endpoint, payload) {
 
 export async function generateQuestions({ course, submission }) {
   // First try the separate Python AI Service per architecture requirement
-  const pyResult = await callPythonService('/api/generate-questions', { course, submission });
+  const pyResult = await callPythonService('/api/generate-questions', {
+    course,
+    submission,
+    questionCount: course.assignment?.questionCount || 5
+  });
   if (pyResult && Array.isArray(pyResult.questions) && pyResult.questions.length) {
     return { questions: pyResult.questions, generatedBy: pyResult.generatedBy || 'python-ai-service' };
   }
@@ -45,11 +49,11 @@ export async function generateQuestions({ course, submission }) {
   if (hasKey()) {
     try {
       const out = await llmJson(
-        'You are an examiner generating a short viva interview to verify a student truly understands work they submitted. Return JSON: {"questions": ["...", ...]} with exactly 5 specific questions grounded in THEIR submission (reference functions, choices, or claims it contains). Never generic trivia.',
+        `You are an examiner generating a short viva interview to verify a student truly understands work they submitted. Return JSON: {"questions": ["...", ...]} with exactly ${course.assignment?.questionCount || 5} specific questions grounded in THEIR submission (reference functions, choices, or claims it contains). Never generic trivia.`,
         `Course: ${course.title} (skill: ${course.skill})\nAssignment: ${course.assignment.title}\nPrompt: ${course.assignment.prompt}\n\nStudent submission:\n${String(source).slice(0, 6000)}`
       );
       if (Array.isArray(out.questions) && out.questions.length) {
-        return { questions: out.questions.slice(0, 5), generatedBy: 'openai-direct' };
+        return { questions: out.questions.slice(0, course.assignment?.questionCount || 5), generatedBy: 'openai-direct' };
       }
     } catch (err) {
       console.warn('[ai] OpenAI question generation failed, using mock:', err.message);
@@ -162,7 +166,7 @@ function mockQuestions(course, submission) {
     qs.push(`How would your answer change if the constraint in the assignment were doubled?`);
   }
   qs.push(`Finally: in one sentence, what is the single biggest limitation of your own submission?`);
-  return qs.slice(0, 5);
+  return qs.slice(0, course.assignment?.questionCount || 5);
 }
 
 const STOP = new Set(['the', 'a', 'an', 'and', 'or', 'to', 'of', 'in', 'on', 'for', 'is', 'are', 'was', 'it', 'i', 'you', 'my', 'your', 'this', 'that', 'with', 'as', 'at', 'be', 'have', 'has', 'do', 'does', 'would', 'will', 'can', 'could', 'should', 'if', 'then', 'else', 'not', 'but', 'from', 'by', 'so', 'we', 'they', 'me', 'am']);
@@ -195,7 +199,8 @@ function mockScore(course, submission, answers) {
 
   const pastePenalty = Math.min(0.25, (submission.pasteEvents || 0) * 0.1);
   const consistency = clamp01(total - pastePenalty);
-  const confidence = clamp01(consistency * 0.9 + (perAnswer.length >= 4 ? 0.05 : 0));
+  const questionCount = course.assignment?.questionCount || 5;
+  const confidence = clamp01(consistency * 0.9 + (perAnswer.length >= Math.max(1, questionCount - 1) ? 0.05 : 0));
   const verdict = consistency >= 0.45 && confidence >= 0.4 ? 'VERIFY' : 'FLAG';
   const qualityScore = Math.round(consistency * 100);
 

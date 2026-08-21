@@ -656,7 +656,7 @@ export default function ClassroomPage() {
                       className="w-full py-3 bg-gradient-to-r from-emerald-500 via-indigo-600 to-purple-600 hover:from-emerald-600 hover:to-purple-700 text-white font-bold text-xs rounded-xl shadow-lg shadow-emerald-500/20 transition-all flex items-center justify-center gap-2"
                     >
                       <Sparkles className="w-4 h-4 text-amber-300" />
-                      Start 5-Question AI Viva Interview
+                      Start {course.assignment?.questionCount || 5}-Question AI Viva Interview
                       <ArrowRight className="w-4 h-4" />
                     </button>
                   )}
@@ -689,7 +689,7 @@ export default function ClassroomPage() {
                     <CodeMirror
                       value={codeContent}
                       height="380px"
-                      theme={oneDark}
+                      theme="none"
                       basicSetup={{
                         lineNumbers: true,
                         highlightActiveLineGutter: true,
@@ -699,7 +699,7 @@ export default function ClassroomPage() {
                         dropCursor: true,
                         allowMultipleSelections: true,
                         indentOnInput: true,
-                        syntaxHighlighting: true,
+                        syntaxHighlighting: false,
                         bracketMatching: true,
                         closeBrackets: true,
                         autocompletion: true,
@@ -716,6 +716,7 @@ export default function ClassroomPage() {
                         lintKeymap: true,
                       }}
                       extensions={[
+                        oneDark,
                         getLanguageExtension(course.assignment?.language),
                         keymap.of([indentWithTab]),
                         editorDomEventHandlers,

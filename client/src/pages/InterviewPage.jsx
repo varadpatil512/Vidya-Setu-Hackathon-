@@ -88,7 +88,7 @@ export default function InterviewPage() {
     // Check all questions answered
     const emptyCount = answers.filter((a) => !a.answer.trim()).length;
     if (emptyCount > 0) {
-      setError(`Please provide an answer to all 5 interview questions (${emptyCount} remaining).`);
+      setError(`Please provide an answer to all ${answers.length} interview questions (${emptyCount} remaining).`);
       return;
     }
 

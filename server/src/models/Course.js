@@ -23,6 +23,7 @@ const assignmentSchema = new mongoose.Schema({
   starterCode: { type: String, default: '' },
   rubric: { type: String, default: '' },
   testCases: { type: [testCaseSchema], default: [] },
+  questionCount: { type: Number, default: 5 },
 }, { _id: false });
 
 const courseSchema = new mongoose.Schema({
@@ -37,7 +38,7 @@ const courseSchema = new mongoose.Schema({
   assignment: { type: assignmentSchema, required: true },
 }, { timestamps: true });
 
-courseSchema.statics.videoCount = () => Number(process.env.COURSE_VIDEO_COUNT || 5);
+courseSchema.statics.videoCount = () => Number(String(process.env.COURSE_VIDEO_COUNT || 5).trim());
 
 courseSchema.path('videos').validate(function (v) {
   return v.length === Course.videoCount();

@@ -64,7 +64,8 @@ def generate_mock_questions(course, submission):
         qs.append("If an auditor challenged the weakest assertion in your text, how would you defend it?")
     
     qs.append("Finally: in one sentence, what is the single biggest limitation of your current submission?")
-    return qs[:5]
+    question_count = course.get('assignment', {}).get('questionCount', 5)
+    return qs[:question_count]
 
 def score_mock_interview(course, submission, answers):
     sub_type = submission.get('type', 'code')
@@ -92,7 +93,8 @@ def score_mock_interview(course, submission, answers):
     paste_penalty = min(0.3, paste_events * 0.1)
     
     consistency = max(0.0, min(1.0, avg_score - paste_penalty))
-    confidence = max(0.0, min(1.0, consistency * 0.9 + (0.1 if len(answers) >= 5 else 0.0)))
+    question_count = course.get('assignment', {}).get('questionCount', 5)
+    confidence = max(0.0, min(1.0, consistency * 0.9 + (0.1 if len(answers) >= question_count else 0.0)))
     verdict = "VERIFY" if (consistency >= 0.40 and confidence >= 0.35) else "FLAG"
     quality_score = int(consistency * 100)
     
@@ -177,15 +179,16 @@ class AIServiceHandler(BaseHTTPRequestHandler):
         if self.path == '/api/generate-questions':
             course = payload.get('course', {})
             submission = payload.get('submission', {})
+            question_count = payload.get('questionCount') or course.get('assignment', {}).get('questionCount') or 5
             
             # Try OpenAI if available
             ai_res = call_openai_json(
-                "You are an AI examiner generating 5 dynamic viva questions based on a student's submission to verify genuine understanding and authorship. Return JSON: {\"questions\": [\"...\"]}",
+                f"You are an AI examiner generating {question_count} dynamic viva questions based on a student's submission to verify genuine understanding and authorship. Return JSON: {{\"questions\": [\"...\"]}}",
                 f"Course: {course.get('title')}\nAssignment: {course.get('assignment', {}).get('title')}\nSubmission:\n{submission.get('code') or submission.get('text')}"
             )
             if ai_res and isinstance(ai_res.get('questions'), list):
                 self.send_json(200, {
-                    "questions": ai_res['questions'][:5],
+                    "questions": ai_res['questions'][:question_count],
                     "generatedBy": "python-ai-service (openai)"
                 })
             else:
