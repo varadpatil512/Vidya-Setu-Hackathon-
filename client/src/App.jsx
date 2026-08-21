@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
+import { useTheme } from './context/useTheme';
 import Navbar from './components/Navbar';
 import AuthModal from './components/AuthModal';
 import ExplorePage from './pages/ExplorePage';
@@ -15,7 +16,7 @@ function ProtectedRoute({ children, roles }) {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center">
+      <div className="min-h-screen bg-vs-bg text-vs-text flex items-center justify-center">
         <div className="w-10 h-10 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin" />
       </div>
     );
@@ -34,9 +35,11 @@ function ProtectedRoute({ children, roles }) {
 
 export default function App() {
   const [authModalOpen, setAuthModalOpen] = useState(false);
+  // Initialize theme on app mount (applies class to <html>)
+  useTheme();
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white font-sans antialiased">
+    <div className="min-h-screen bg-vs-bg text-vs-text font-sans antialiased">
       <Navbar onOpenAuth={() => setAuthModalOpen(true)} />
       
       <main>

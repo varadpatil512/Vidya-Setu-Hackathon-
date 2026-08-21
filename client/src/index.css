@@ -1,20 +1,102 @@
 @import "tailwindcss";
 
-body {
-  @apply bg-slate-950 text-white antialiased selection:bg-indigo-500 selection:text-white;
+/* ─── Tailwind v4: enable class-based dark mode ─────────────────────────── */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ─── Theme colour tokens (light = :root, dark = .dark) ─────────────────── */
+:root {
+  --vs-bg:            #F7F6FC;
+  --vs-surface:       #FFFFFF;
+  --vs-surface-2:     #EDEAF6;
+  --vs-text:          #1E1B2E;
+  --vs-muted:         #6B6885;
+  --vs-subtle:        #9896AA;
+  --vs-border:        #DDD9F0;
+  --vs-border-subtle: #EAE8F5;
 }
 
+.dark {
+  --vs-bg:            #0F1123;
+  --vs-surface:       #171A35;
+  --vs-surface-2:     #1E2244;
+  --vs-text:          #E8E9F5;
+  --vs-muted:         #8B8FA8;
+  --vs-subtle:        #545878;
+  --vs-border:        #252844;
+  --vs-border-subtle: #1C1F3A;
+}
+
+/* ─── Expose tokens to Tailwind utilities ────────────────────────────────── */
+@theme inline {
+  --color-vs-bg:            var(--vs-bg);
+  --color-vs-surface:       var(--vs-surface);
+  --color-vs-surface-2:     var(--vs-surface-2);
+  --color-vs-text:          var(--vs-text);
+  --color-vs-muted:         var(--vs-muted);
+  --color-vs-subtle:        var(--vs-subtle);
+  --color-vs-border:        var(--vs-border);
+  --color-vs-border-subtle: var(--vs-border-subtle);
+}
+
+/* ─── Base styles ────────────────────────────────────────────────────────── */
+html {
+  /* smooth colour transition when toggling theme */
+  transition: background-color 250ms ease, color 250ms ease;
+}
+
+body {
+  background-color: var(--vs-bg);
+  color: var(--vs-text);
+  @apply antialiased selection:bg-indigo-500 selection:text-white;
+}
+
+/* ─── Smooth theme transition on interactive elements ────────────────────── */
+*, *::before, *::after {
+  transition-property: background-color, border-color, color;
+  transition-duration: 200ms;
+  transition-timing-function: ease;
+}
+
+/* Exclude transitions on transforms/opacity so animations aren't sluggish */
+.no-theme-transition,
+.no-theme-transition * {
+  transition: none !important;
+}
+
+/* ─── Existing fadeIn animation ──────────────────────────────────────────── */
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: scale(0.98);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
+  from { opacity: 0; transform: scale(0.98); }
+  to   { opacity: 1; transform: scale(1); }
 }
 
 .animate-fade-in {
   animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
+
+/* ─── Scroll-reveal animation for step cards ─────────────────────────────── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-up {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.animate-fade-up.is-visible {
+  animation: fadeUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* ─── Button micro-interaction utilities ─────────────────────────────────── */
+.btn-scale {
+  transition: transform 150ms ease, box-shadow 150ms ease;
+}
+.btn-scale:hover  { transform: scale(1.03); }
+.btn-scale:active { transform: scale(0.98); }
+
+/* ─── Theme toggle button ────────────────────────────────────────────────── */
+.theme-toggle {
+  transition: transform 300ms ease, background-color 200ms ease;
+}
+.theme-toggle:hover { transform: rotate(15deg) scale(1.1); }

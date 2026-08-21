@@ -326,10 +326,10 @@ export default function ClassroomPage() {
 
   if (!course || !enrollment) {
     return (
-      <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center">
+      <div className="min-h-screen bg-vs-bg text-vs-text flex items-center justify-center">
         <div className="text-center space-y-3">
           <div className="w-10 h-10 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin mx-auto" />
-          <p className="text-sm text-slate-400">Loading VidyaSetu Classroom...</p>
+          <p className="text-sm text-vs-muted">Loading VidyaSetu Classroom...</p>
         </div>
       </div>
     );
@@ -342,28 +342,28 @@ export default function ClassroomPage() {
   const isWatched = !!enrollment.videoWatched?.[currentVideoIdx];
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white pb-20">
+    <div className="min-h-screen bg-vs-bg text-vs-text pb-20">
       
       {/* Top Header Bar */}
-      <div className="bg-slate-900 border-b border-slate-800 px-4 sm:px-8 py-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="bg-vs-surface border-b border-vs-border px-4 sm:px-8 py-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <span className="px-2.5 py-0.5 rounded-full bg-indigo-500/10 border border-indigo-500/30 text-indigo-400 text-xs font-semibold uppercase">
+            <span className="px-2.5 py-0.5 rounded-full bg-indigo-500/10 border border-indigo-500/30 text-indigo-500 dark:text-indigo-400 text-xs font-semibold uppercase">
               {course.skill}
             </span>
-            <h1 className="text-xl font-bold text-white">{course.title}</h1>
+            <h1 className="text-xl font-bold text-vs-text">{course.title}</h1>
           </div>
-          <p className="text-xs text-slate-400 mt-1">Instructor: {course.instructor}</p>
+          <p className="text-xs text-vs-muted mt-1">Instructor: {course.instructor}</p>
         </div>
 
         {/* Navigation Tabs */}
-        <div className="flex items-center gap-2 bg-slate-950 p-1 rounded-xl border border-slate-800">
+        <div className="flex items-center gap-2 bg-vs-surface-2 p-1 rounded-xl border border-vs-border">
           <button
             onClick={() => setActiveTab('video')}
-            className={`px-4 py-2 rounded-lg text-xs font-semibold transition-all flex items-center gap-2 ${
+            className={`px-4 py-2 rounded-lg text-xs font-semibold transition-all btn-scale flex items-center gap-2 ${
               activeTab === 'video'
                 ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
-                : 'text-slate-400 hover:text-white'
+                : 'text-vs-muted hover:text-vs-text'
             }`}
           >
             <Play className="w-3.5 h-3.5" />
@@ -372,10 +372,10 @@ export default function ClassroomPage() {
           
           <button
             onClick={() => setActiveTab('notes')}
-            className={`px-4 py-2 rounded-lg text-xs font-semibold transition-all flex items-center gap-2 ${
+            className={`px-4 py-2 rounded-lg text-xs font-semibold transition-all btn-scale flex items-center gap-2 ${
               activeTab === 'notes'
                 ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
-                : 'text-slate-400 hover:text-white'
+                : 'text-vs-muted hover:text-vs-text'
             }`}
           >
             <FileText className="w-3.5 h-3.5" />
@@ -384,15 +384,15 @@ export default function ClassroomPage() {
 
           <button
             onClick={() => setActiveTab('assignment')}
-            className={`px-4 py-2 rounded-lg text-xs font-semibold transition-all flex items-center gap-2 ${
+            className={`px-4 py-2 rounded-lg text-xs font-semibold transition-all btn-scale flex items-center gap-2 ${
               activeTab === 'assignment'
                 ? 'bg-purple-600 text-white shadow-md shadow-purple-600/30'
-                : 'text-slate-400 hover:text-white'
+                : 'text-vs-muted hover:text-vs-text'
             }`}
           >
             <Code2 className="w-3.5 h-3.5" />
             Assignment Challenge
-            {!allVideosWatched && <Lock className="w-3 h-3 text-amber-400 ml-1" />}
+            {!allVideosWatched && <Lock className="w-3 h-3 text-amber-500 ml-1" />}
           </button>
         </div>
       </div>
@@ -403,7 +403,7 @@ export default function ClassroomPage() {
           
             {/* Main Video Screen */}
             <div className="lg:col-span-2 space-y-6">
-              <div className="relative aspect-video bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl flex flex-col justify-center items-center">
+              <div className="relative aspect-video bg-vs-surface border border-vs-border rounded-2xl overflow-hidden shadow-2xl flex flex-col justify-center items-center">
                 {ytId && !useHtmlFallback ? (
                   <iframe
                     key={ytId}
@@ -428,16 +428,16 @@ export default function ClassroomPage() {
               </div>
 
               {/* Status Bar Placed Below Video Player */}
-              <div className="p-4 bg-slate-900/90 border border-slate-800 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-lg">
+              <div className="p-4 bg-vs-surface/90 border border-vs-border rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-lg">
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-xl bg-indigo-500/10 border border-indigo-500/30 text-indigo-400 flex items-center justify-center font-bold text-xs">
+                  <div className="w-8 h-8 rounded-xl bg-indigo-500/10 border border-indigo-500/30 text-indigo-500 dark:text-indigo-400 flex items-center justify-center font-bold text-xs">
                     {currentVideoIdx + 1}
                   </div>
                   <div>
-                    <span className="text-[11px] uppercase tracking-wider text-slate-400 font-semibold block">
+                    <span className="text-[11px] uppercase tracking-wider text-vs-muted font-semibold block">
                       Module {currentVideoIdx + 1} of {videosCount}
                     </span>
-                    <h3 className="text-sm font-bold text-white line-clamp-1">{currentVideo.title}</h3>
+                    <h3 className="text-sm font-bold text-vs-text line-clamp-1">{currentVideo.title}</h3>
                   </div>
                 </div>
 
@@ -445,7 +445,7 @@ export default function ClassroomPage() {
                   {ytId && (
                     <button
                       onClick={() => setUseHtmlFallback((prev) => !prev)}
-                      className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-slate-200 text-[11px] font-semibold border border-slate-700 transition-all"
+                      className="px-3 py-1.5 rounded-lg bg-vs-surface-2 hover:bg-vs-surface text-vs-muted hover:text-vs-text text-[11px] font-semibold border border-vs-border transition-all btn-scale"
                     >
                       {useHtmlFallback ? 'Switch to YouTube Player' : 'Fallback HTML5 Player'}
                     </button>
@@ -459,12 +459,12 @@ export default function ClassroomPage() {
                         ? 'Watch at least 90% of the video to continue'
                         : ''
                     }
-                    className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
+                    className={`px-4 py-2 rounded-xl text-xs font-bold transition-all btn-scale flex items-center gap-2 ${
                       isWatched
-                        ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/50 shadow-sm shadow-emerald-500/10'
+                        ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/50 shadow-sm shadow-emerald-500/10'
                         : canMarkWatched
                         ? 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-600/30 cursor-pointer'
-                        : 'bg-slate-800 text-slate-500 border border-slate-700 cursor-not-allowed opacity-60'
+                        : 'bg-vs-surface-2 text-vs-muted border border-vs-border cursor-not-allowed opacity-60'
                     }`}
                   >
                     <CheckCircle2 className="w-4 h-4" />
@@ -477,9 +477,9 @@ export default function ClassroomPage() {
                 </div>
               </div>
 
-            <div className="p-6 bg-slate-900/60 border border-slate-800 rounded-2xl space-y-3">
-              <h3 className="text-lg font-bold text-white">About this Module</h3>
-              <p className="text-xs text-slate-400 leading-relaxed">
+            <div className="p-6 bg-vs-surface border border-vs-border rounded-2xl space-y-3 shadow-sm">
+              <h3 className="text-lg font-bold text-vs-text">About this Module</h3>
+              <p className="text-xs text-vs-muted leading-relaxed">
                 Watch all video modules in sequence (at least 90% duration). Once you reach 90%, the module will automatically mark watched and turn green.
                 When all modules are completed, the Applied Assignment Challenge and AI Viva Interview will unlock.
               </p>
@@ -488,14 +488,14 @@ export default function ClassroomPage() {
 
           {/* Module List Sidebar */}
           <div className="space-y-4">
-            <div className="p-5 bg-slate-900 border border-slate-800 rounded-2xl">
-              <h3 className="text-sm font-bold text-white mb-1">Course Content & Progress</h3>
-              <p className="text-xs text-slate-400 mb-4">
+            <div className="p-5 bg-vs-surface border border-vs-border rounded-2xl shadow-sm">
+              <h3 className="text-sm font-bold text-vs-text mb-1">Course Content & Progress</h3>
+              <p className="text-xs text-vs-muted mb-4">
                 Watched {enrollment.videoWatched?.filter(Boolean).length || 0} of {videosCount} videos
               </p>
 
               {/* Progress Bar */}
-              <div className="w-full h-2 bg-slate-950 rounded-full overflow-hidden mb-6">
+              <div className="w-full h-2 bg-vs-surface-2 rounded-full overflow-hidden mb-6">
                 <div
                   className="h-full bg-gradient-to-r from-indigo-500 to-emerald-400 transition-all duration-500"
                   style={{
@@ -514,29 +514,29 @@ export default function ClassroomPage() {
                     <button
                       key={idx}
                       onClick={() => setCurrentVideoIdx(idx)}
-                      className={`w-full p-3 rounded-xl text-left border transition-all flex items-center justify-between ${
+                      className={`w-full p-3 rounded-xl text-left border transition-all btn-scale flex items-center justify-between ${
                         watched
-                          ? 'bg-emerald-950/20 border-emerald-500/40 text-emerald-300'
+                          ? 'bg-emerald-950/10 dark:bg-emerald-950/20 border-emerald-500/40 text-emerald-600 dark:text-emerald-300'
                           : isCurrent
-                          ? 'bg-indigo-600/20 border-indigo-500/50 text-indigo-300'
-                          : 'bg-slate-950/60 hover:bg-slate-950 border-slate-800/80 text-slate-300'
+                          ? 'bg-indigo-600/10 dark:bg-indigo-600/20 border-indigo-500/50 text-indigo-600 dark:text-indigo-300'
+                          : 'bg-vs-surface-2/60 hover:bg-vs-surface-2 border-vs-border text-vs-text'
                       }`}
                     >
                       <div className="flex items-center gap-3">
                         <div className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold ${
-                          watched ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-slate-800 text-slate-400'
+                          watched ? 'bg-emerald-500/20 text-emerald-500 border border-emerald-500/30' : 'bg-vs-surface border border-vs-border text-vs-muted'
                         }`}>
-                          {watched ? <Check className="w-4 h-4 text-emerald-400" /> : idx + 1}
+                          {watched ? <Check className="w-4 h-4 text-emerald-500" /> : idx + 1}
                         </div>
                         <div>
                           <h4 className="text-xs font-semibold line-clamp-1">{vid.title}</h4>
-                          <span className="text-[10px] text-slate-500 flex items-center gap-1 mt-0.5">
+                          <span className="text-[10px] text-vs-muted flex items-center gap-1 mt-0.5">
                             <Clock className="w-3 h-3" /> {vid.duration || '10:00'}
                           </span>
                         </div>
                       </div>
 
-                      {isCurrent && <Play className="w-3.5 h-3.5 text-indigo-400 fill-current" />}
+                      {isCurrent && <Play className="w-3.5 h-3.5 text-indigo-500 fill-current" />}
                     </button>
                   );
                 })}
@@ -545,7 +545,7 @@ export default function ClassroomPage() {
               {allVideosWatched && (
                 <button
                   onClick={() => setActiveTab('assignment')}
-                  className="w-full mt-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-purple-600/30 transition-all flex items-center justify-center gap-2"
+                  className="w-full mt-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-purple-600/30 transition-all btn-scale flex items-center justify-center gap-2"
                 >
                   <Sparkles className="w-4 h-4 text-amber-300" />
                   Proceed to Challenge & AI Viva
@@ -560,14 +560,14 @@ export default function ClassroomPage() {
       {/* Tab 2: Notes Editor */}
       {activeTab === 'notes' && (
         <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8 space-y-6">
-          <div className="p-6 bg-slate-900 border border-slate-800 rounded-2xl space-y-4">
+          <div className="p-6 bg-vs-surface border border-vs-border rounded-2xl space-y-4 shadow-sm">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                  <FileText className="w-5 h-5 text-indigo-400" />
+                <h2 className="text-lg font-bold text-vs-text flex items-center gap-2">
+                  <FileText className="w-5 h-5 text-indigo-500" />
                   Course Study Notes
                 </h2>
-                <p className="text-xs text-slate-400">
+                <p className="text-xs text-vs-muted">
                   Notes are stored per course and persist automatically across sessions.
                 </p>
               </div>
@@ -575,7 +575,7 @@ export default function ClassroomPage() {
               <button
                 onClick={handleSaveNotes}
                 disabled={notesSaving}
-                className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold transition-all flex items-center gap-2 shadow-md shadow-indigo-600/20"
+                className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold transition-all btn-scale flex items-center gap-2 shadow-md shadow-indigo-600/20"
               >
                 <Save className="w-4 h-4" />
                 {notesSaving ? 'Saving...' : notesSavedMsg ? 'Saved!' : 'Save Notes'}
@@ -587,7 +587,7 @@ export default function ClassroomPage() {
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="Write your study notes, key takeaways, code logic, or thoughts here..."
-              className="w-full p-4 bg-slate-950 border border-slate-800 rounded-xl text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:border-indigo-500 font-mono leading-relaxed resize-y"
+              className="w-full p-4 bg-vs-surface-2 border border-vs-border rounded-xl text-sm text-vs-text placeholder-vs-muted focus:outline-none focus:border-indigo-500 font-mono leading-relaxed resize-y"
             />
           </div>
         </div>
@@ -598,7 +598,7 @@ export default function ClassroomPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
           
           {!allVideosWatched && (
-            <div className="p-4 bg-amber-500/10 border border-amber-500/30 rounded-2xl flex items-center gap-3 text-amber-300 text-xs font-semibold">
+            <div className="p-4 bg-amber-500/10 border border-amber-500/30 rounded-2xl flex items-center gap-3 text-amber-500 dark:text-amber-300 text-xs font-semibold">
               <Lock className="w-5 h-5 flex-shrink-0" />
               <span>Complete watching all video modules first before attempting the assignment challenge.</span>
             </div>
@@ -608,30 +608,30 @@ export default function ClassroomPage() {
             
             {/* Prompt & Instructions */}
             <div className="space-y-6">
-              <div className="p-6 bg-slate-900 border border-slate-800 rounded-2xl space-y-4">
-                <div className="flex items-center gap-2 text-purple-400 text-xs font-bold uppercase tracking-wider">
+              <div className="p-6 bg-vs-surface border border-vs-border rounded-2xl space-y-4 shadow-sm">
+                <div className="flex items-center gap-2 text-purple-500 dark:text-purple-400 text-xs font-bold uppercase tracking-wider">
                   <Sparkles className="w-4 h-4" /> Real Challenge Assignment
                 </div>
                 
-                <h2 className="text-xl font-bold text-white">{course.assignment.title}</h2>
-                <p className="text-xs text-slate-300 leading-relaxed bg-slate-950 p-4 rounded-xl border border-slate-800/80">
+                <h2 className="text-xl font-bold text-vs-text">{course.assignment.title}</h2>
+                <p className="text-xs text-vs-text leading-relaxed bg-vs-surface-2 p-4 rounded-xl border border-vs-border">
                   {course.assignment.prompt}
                 </p>
 
                 {/* Paste Detection Logger Indicator */}
-                <div className="p-4 bg-slate-950 border border-slate-800 rounded-xl space-y-2">
+                <div className="p-4 bg-vs-surface-2 border border-vs-border rounded-xl space-y-2">
                   <div className="flex items-center justify-between text-xs font-semibold">
-                    <span className="text-slate-400 flex items-center gap-1.5">
-                      <AlertTriangle className="w-4 h-4 text-amber-400" />
+                    <span className="text-vs-muted flex items-center gap-1.5">
+                      <AlertTriangle className="w-4 h-4 text-amber-500" />
                       Paste Attempts Blocked
                     </span>
                     <span className={`px-2 py-0.5 rounded text-xs font-bold ${
-                      pasteEvents > 0 ? 'bg-rose-500/20 text-rose-400' : 'bg-emerald-500/20 text-emerald-400'
+                      pasteEvents > 0 ? 'bg-rose-500/20 text-rose-500' : 'bg-emerald-500/20 text-emerald-500'
                     }`}>
                       {pasteEvents} attempt(s) blocked
                     </span>
                   </div>
-                  <p className="text-[11px] text-slate-500">
+                  <p className="text-[11px] text-vs-muted">
                     Direct copy-pasting and right-click paste are blocked in the editor. All paste attempts are logged.
                   </p>
                 </div>
@@ -639,21 +639,21 @@ export default function ClassroomPage() {
 
               {/* Verification Status */}
               {submission && (
-                <div className="p-6 bg-slate-900 border border-slate-800 rounded-2xl space-y-4">
-                  <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                    <ShieldCheck className="w-4 h-4 text-emerald-400" />
+                <div className="p-6 bg-vs-surface border border-vs-border rounded-2xl space-y-4 shadow-sm">
+                  <h3 className="text-sm font-bold text-vs-text flex items-center gap-2">
+                    <ShieldCheck className="w-4 h-4 text-emerald-500" />
                     Submission Status
                   </h3>
 
-                  <div className="flex items-center justify-between text-xs p-3 bg-slate-950 rounded-xl border border-slate-800">
-                    <span className="text-slate-400">Current Status</span>
-                    <span className="font-bold text-indigo-400 uppercase">{submission.status}</span>
+                  <div className="flex items-center justify-between text-xs p-3 bg-vs-surface-2 rounded-xl border border-vs-border">
+                    <span className="text-vs-muted">Current Status</span>
+                    <span className="font-bold text-indigo-500 uppercase">{submission.status}</span>
                   </div>
 
                   {submission.status === 'CODE_VERIFIED' && (
                     <button
                       onClick={handleStartInterview}
-                      className="w-full py-3 bg-gradient-to-r from-emerald-500 via-indigo-600 to-purple-600 hover:from-emerald-600 hover:to-purple-700 text-white font-bold text-xs rounded-xl shadow-lg shadow-emerald-500/20 transition-all flex items-center justify-center gap-2"
+                      className="w-full py-3 bg-gradient-to-r from-emerald-500 via-indigo-600 to-purple-600 hover:from-emerald-600 hover:to-purple-700 text-white font-bold text-xs rounded-xl shadow-lg shadow-emerald-500/20 transition-all btn-scale flex items-center justify-center gap-2"
                     >
                       <Sparkles className="w-4 h-4 text-amber-300" />
                       Start {course.assignment?.questionCount || 5}-Question AI Viva Interview
@@ -671,15 +671,15 @@ export default function ClassroomPage() {
               <div 
                 onPaste={handlePasteAttempt}
                 onContextMenu={handleContextMenu}
-                className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl"
+                className="bg-vs-surface border border-vs-border rounded-2xl overflow-hidden shadow-2xl"
               >
                 
-                <div className="p-4 bg-slate-950 border-b border-slate-800 flex items-center justify-between text-xs font-semibold text-slate-400">
+                <div className="p-4 bg-vs-surface-2 border-b border-vs-border flex items-center justify-between text-xs font-semibold text-vs-muted">
                   <div className="flex items-center gap-2">
-                    <Terminal className="w-4 h-4 text-indigo-400" />
+                    <Terminal className="w-4 h-4 text-indigo-500" />
                     <span>Locked Submission Editor ({course.assignment.type.toUpperCase()})</span>
                   </div>
-                  <span className="text-[11px] text-indigo-400 font-mono uppercase bg-indigo-500/10 px-2 py-0.5 rounded border border-indigo-500/30">
+                  <span className="text-[11px] text-indigo-500 dark:text-indigo-400 font-mono uppercase bg-indigo-500/10 px-2 py-0.5 rounded border border-indigo-500/30">
                     {course.assignment?.language || 'plain text'}
                   </span>
                 </div>
@@ -732,19 +732,19 @@ export default function ClassroomPage() {
                     onPaste={handlePasteAttempt}
                     onContextMenu={handleContextMenu}
                     placeholder="Write your text submission here..."
-                    className="w-full p-4 bg-slate-950 text-sm text-slate-200 placeholder-slate-600 focus:outline-none font-mono"
+                    className="w-full p-4 bg-vs-surface-2 text-sm text-vs-text placeholder-vs-muted focus:outline-none font-mono"
                   />
                 )}
 
-                <div className="p-4 bg-slate-950 border-t border-slate-800 flex items-center justify-between">
-                  <p className="text-xs text-slate-500">
+                <div className="p-4 bg-vs-surface-2 border-t border-vs-border flex items-center justify-between">
+                  <p className="text-xs text-vs-muted">
                     Snapshots captured: {snapshots.length}
                   </p>
 
                   <button
                     onClick={handleRunTests}
                     disabled={submitting}
-                    className="px-6 py-2.5 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center gap-2"
+                    className="px-6 py-2.5 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-bold text-xs rounded-xl shadow-md transition-all btn-scale flex items-center gap-2"
                   >
                     <PlaySquare className="w-4 h-4" />
                     {submitting ? 'Running Test Cases...' : 'Run Test Cases & Submit'}
@@ -753,22 +753,22 @@ export default function ClassroomPage() {
               </div>
 
               {error && (
-                <div className="p-4 bg-rose-500/10 border border-rose-500/20 rounded-2xl text-xs font-semibold text-rose-400">
+                <div className="p-4 bg-rose-500/10 border border-rose-500/20 rounded-2xl text-xs font-semibold text-rose-500">
                   {error}
                 </div>
               )}
 
               {/* Test Case Output Terminal */}
               {testResults && (
-                <div className="p-6 bg-slate-900 border border-slate-800 rounded-2xl space-y-4">
+                <div className="p-6 bg-vs-surface border border-vs-border rounded-2xl space-y-4 shadow-sm">
                   <div className="flex items-center justify-between">
-                    <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                      <Terminal className="w-4 h-4 text-emerald-400" />
+                    <h3 className="text-sm font-bold text-vs-text flex items-center gap-2">
+                      <Terminal className="w-4 h-4 text-emerald-500" />
                       Test Execution Results
                     </h3>
 
                     <span className={`px-3 py-1 rounded-full text-xs font-bold ${
-                      testResults.passed ? 'bg-emerald-500/20 text-emerald-400' : 'bg-rose-500/20 text-rose-400'
+                      testResults.passed ? 'bg-emerald-500/20 text-emerald-500' : 'bg-rose-500/20 text-rose-500'
                     }`}>
                       {testResults.passed ? 'ALL TEST CASES PASSED' : 'SOME TESTS FAILED'}
                     </span>
@@ -780,8 +780,8 @@ export default function ClassroomPage() {
                         key={idx}
                         className={`p-3 rounded-xl border text-xs font-mono flex items-center justify-between ${
                           res.passed
-                            ? 'bg-emerald-950/30 border-emerald-500/30 text-emerald-300'
-                            : 'bg-rose-950/30 border-rose-500/30 text-rose-300'
+                            ? 'bg-emerald-950/10 dark:bg-emerald-950/30 border-emerald-500/30 text-emerald-600 dark:text-emerald-300'
+                            : 'bg-rose-950/10 dark:bg-rose-950/30 border-rose-500/30 text-rose-600 dark:text-rose-300'
                         }`}
                       >
                         <div>
@@ -799,7 +799,7 @@ export default function ClassroomPage() {
                     <div className="pt-2 text-center">
                       <button
                         onClick={handleStartInterview}
-                        className="w-full py-3 bg-gradient-to-r from-emerald-500 via-indigo-600 to-purple-600 text-white font-bold text-xs rounded-xl shadow-lg transition-all flex items-center justify-center gap-2"
+                        className="w-full py-3 bg-gradient-to-r from-emerald-500 via-indigo-600 to-purple-600 text-white font-bold text-xs rounded-xl shadow-lg transition-all btn-scale flex items-center justify-center gap-2"
                       >
                         <Sparkles className="w-4 h-4 text-amber-300" />
                         Code Passed! Start AI Viva Interview Now

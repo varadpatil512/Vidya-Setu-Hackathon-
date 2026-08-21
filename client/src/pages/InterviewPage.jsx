@@ -105,47 +105,47 @@ export default function InterviewPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-950 text-white flex flex-col items-center justify-center space-y-4">
+      <div className="min-h-screen bg-vs-bg text-vs-text flex flex-col items-center justify-center space-y-4">
         <div className="relative">
           <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-500 animate-pulse flex items-center justify-center">
             <Bot className="w-8 h-8 text-white" />
           </div>
         </div>
         <div className="text-center">
-          <h3 className="text-lg font-bold text-white">Generating AI Viva Questions...</h3>
-          <p className="text-xs text-slate-400 mt-1">Python AI Service analyzing submission code & grounded logic...</p>
+          <h3 className="text-lg font-bold text-vs-text">Generating AI Viva Questions...</h3>
+          <p className="text-xs text-vs-muted mt-1">Python AI Service analyzing submission code & grounded logic...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white pb-20">
+    <div className="min-h-screen bg-vs-bg text-vs-text pb-20">
       
       {/* Top Banner */}
-      <div className="bg-slate-900 border-b border-slate-800 py-6 px-4 sm:px-8">
+      <div className="bg-vs-surface border-b border-vs-border py-6 px-4 sm:px-8">
         <div className="max-w-4xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/30 text-indigo-300 text-xs font-semibold">
-              <Cpu className="w-3.5 h-3.5 text-purple-400" />
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/30 text-indigo-500 dark:text-indigo-300 text-xs font-semibold">
+              <Cpu className="w-3.5 h-3.5 text-purple-500" />
               Python AI Orchestration Service Active
             </div>
-            <h1 className="text-2xl font-extrabold text-white mt-2">AI Viva Interview & Defence</h1>
-            <p className="text-xs text-slate-400 mt-0.5">
-              Course: <strong className="text-slate-200">{submission?.course?.title}</strong> • Skill: <strong className="text-indigo-400">{submission?.course?.skill}</strong>
+            <h1 className="text-2xl font-extrabold text-vs-text mt-2">AI Viva Interview & Defence</h1>
+            <p className="text-xs text-vs-muted mt-0.5">
+              Course: <strong className="text-vs-text">{submission?.course?.title}</strong> • Skill: <strong className="text-indigo-500 dark:text-indigo-400">{submission?.course?.skill}</strong>
             </p>
           </div>
 
           <div className="flex items-center gap-3">
             <button
               onClick={() => setAudioMode(!audioMode)}
-              className={`px-3.5 py-2 rounded-xl text-xs font-semibold transition-all flex items-center gap-2 border ${
+              className={`px-3.5 py-2 rounded-xl text-xs font-semibold transition-all btn-scale flex items-center gap-2 border ${
                 audioMode
-                  ? 'bg-purple-600/20 text-purple-300 border-purple-500/40'
-                  : 'bg-slate-800 text-slate-400 border-slate-700 hover:text-white'
+                  ? 'bg-purple-600/20 text-purple-500 border-purple-500/40'
+                  : 'bg-vs-surface-2 text-vs-muted border-vs-border hover:text-vs-text'
               }`}
             >
-              <Mic className="w-4 h-4 text-pink-400" />
+              <Mic className="w-4 h-4 text-pink-500" />
               Voice Mode {audioMode ? 'ON' : 'OFF'}
             </button>
           </div>
@@ -155,32 +155,32 @@ export default function InterviewPage() {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8 space-y-8">
         
         {/* Submission Context Card */}
-        <div className="p-5 bg-slate-900/60 border border-slate-800 rounded-2xl flex items-center justify-between text-xs">
+        <div className="p-5 bg-vs-surface border border-vs-border rounded-2xl flex items-center justify-between text-xs">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center font-bold">
+            <div className="w-10 h-10 rounded-xl bg-indigo-500/20 text-indigo-500 flex items-center justify-center font-bold">
               <FileCode2 className="w-5 h-5" />
             </div>
             <div>
-              <span className="font-bold text-white block">Submitted Code/Text Solution</span>
-              <span className="text-slate-400 text-[11px]">
+              <span className="font-bold text-vs-text block">Submitted Code/Text Solution</span>
+              <span className="text-vs-muted text-[11px]">
                 Paste events: {submission?.pasteEvents || 0} • Status: {submission?.status}
               </span>
             </div>
           </div>
-          <span className="px-3 py-1 rounded-lg bg-slate-950 border border-slate-800 text-slate-300 font-mono text-[11px]">
+          <span className="px-3 py-1 rounded-lg bg-vs-surface-2 border border-vs-border text-vs-subtle font-mono text-[11px]">
             {submission?.type?.toUpperCase()} SUBMISSION
           </span>
         </div>
 
         {error && (
-          <div className="p-4 bg-rose-500/10 border border-rose-500/20 rounded-2xl text-xs font-semibold text-rose-400">
+          <div className="p-4 bg-rose-500/10 border border-rose-500/20 rounded-2xl text-xs font-semibold text-rose-500">
             {error}
           </div>
         )}
 
         {/* Result Screen Modal */}
         {result ? (
-          <div className="p-8 bg-slate-900 border border-slate-800 rounded-3xl space-y-6 shadow-2xl animate-fade-in text-center">
+          <div className="p-8 bg-vs-surface border border-vs-border rounded-3xl space-y-6 shadow-2xl animate-fade-in text-center">
             
             <div className={`w-20 h-20 rounded-3xl mx-auto flex items-center justify-center shadow-xl ${
               result.verdict === 'VERIFY'
@@ -196,44 +196,44 @@ export default function InterviewPage() {
 
             <div>
               <span className={`inline-block px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider ${
-                result.verdict === 'VERIFY' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40' : 'bg-amber-500/20 text-amber-400 border border-amber-500/40'
+                result.verdict === 'VERIFY' ? 'bg-emerald-500/20 text-emerald-500 border border-emerald-500/40' : 'bg-amber-500/20 text-amber-500 border border-amber-500/40'
               }`}>
                 {result.verdict === 'VERIFY' ? 'SKILL VERIFIED INSTANTLY' : 'FLAGGED FOR TEACHER REVIEW'}
               </span>
 
-              <h2 className="text-2xl font-extrabold text-white mt-3">
+              <h2 className="text-2xl font-extrabold text-vs-text mt-3">
                 {result.verdict === 'VERIFY' ? 'Congratulations! Applied Skill Proven.' : 'Under Review by Faculty'}
               </h2>
             </div>
 
             {/* Score Breakdown Cards */}
             <div className="grid grid-cols-3 gap-4 text-left max-w-xl mx-auto">
-              <div className="p-4 bg-slate-950 border border-slate-800 rounded-2xl">
-                <span className="text-[11px] text-slate-500 font-semibold uppercase">Consistency</span>
-                <p className="text-xl font-bold text-indigo-400 mt-1">{Math.round((result.consistency || 0) * 100)}%</p>
+              <div className="p-4 bg-vs-surface-2 border border-vs-border rounded-2xl">
+                <span className="text-[11px] text-vs-muted font-semibold uppercase">Consistency</span>
+                <p className="text-xl font-bold text-indigo-500 mt-1">{Math.round((result.consistency || 0) * 100)}%</p>
               </div>
-              <div className="p-4 bg-slate-950 border border-slate-800 rounded-2xl">
-                <span className="text-[11px] text-slate-500 font-semibold uppercase">AI Confidence</span>
-                <p className="text-xl font-bold text-purple-400 mt-1">{Math.round((result.confidence || 0) * 100)}%</p>
+              <div className="p-4 bg-vs-surface-2 border border-vs-border rounded-2xl">
+                <span className="text-[11px] text-vs-muted font-semibold uppercase">AI Confidence</span>
+                <p className="text-xl font-bold text-purple-500 mt-1">{Math.round((result.confidence || 0) * 100)}%</p>
               </div>
-              <div className="p-4 bg-slate-950 border border-slate-800 rounded-2xl">
-                <span className="text-[11px] text-slate-500 font-semibold uppercase">Quality Score</span>
-                <p className="text-xl font-bold text-emerald-400 mt-1">{result.qualityScore}/100</p>
+              <div className="p-4 bg-vs-surface-2 border border-vs-border rounded-2xl">
+                <span className="text-[11px] text-vs-muted font-semibold uppercase">Quality Score</span>
+                <p className="text-xl font-bold text-emerald-500 mt-1">{result.qualityScore}/100</p>
               </div>
             </div>
 
-            <div className="p-5 bg-slate-950/80 border border-slate-800 rounded-2xl text-left space-y-2 max-w-xl mx-auto text-xs">
-              <span className="font-bold text-slate-300 block">AI Reasoning:</span>
-              <p className="text-slate-400 leading-relaxed">{result.reasoning}</p>
+            <div className="p-5 bg-vs-surface-2 border border-vs-border rounded-2xl text-left space-y-2 max-w-xl mx-auto text-xs">
+              <span className="font-bold text-vs-text block">AI Reasoning:</span>
+              <p className="text-vs-muted leading-relaxed">{result.reasoning}</p>
               
-              <span className="font-bold text-indigo-300 block pt-2">Constructive Feedback:</span>
-              <p className="text-slate-400 leading-relaxed">{result.feedback}</p>
+              <span className="font-bold text-indigo-500 dark:text-indigo-300 block pt-2">Constructive Feedback:</span>
+              <p className="text-vs-muted leading-relaxed">{result.feedback}</p>
             </div>
 
             <div className="pt-4 flex justify-center gap-4">
               <button
                 onClick={() => navigate('/portfolio')}
-                className="px-6 py-3 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-bold text-xs rounded-xl shadow-lg transition-all flex items-center gap-2"
+                className="px-6 py-3 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-bold text-xs rounded-xl shadow-lg transition-all btn-scale flex items-center gap-2"
               >
                 <Award className="w-4 h-4" />
                 View Skill Portfolio
@@ -248,14 +248,14 @@ export default function InterviewPage() {
             {(interview?.questions || []).map((qObj, idx) => (
               <div
                 key={idx}
-                className="p-6 bg-slate-900 border border-slate-800 rounded-2xl space-y-4 shadow-xl relative"
+                className="p-6 bg-vs-surface border border-vs-border rounded-2xl space-y-4 shadow-sm relative"
               >
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-xl bg-indigo-500/20 text-indigo-400 font-bold text-xs flex items-center justify-center flex-shrink-0">
+                    <div className="w-8 h-8 rounded-xl bg-indigo-500/20 text-indigo-500 dark:text-indigo-400 font-bold text-xs flex items-center justify-center flex-shrink-0">
                       Q{idx + 1}
                     </div>
-                    <h3 className="text-sm font-bold text-white leading-snug">
+                    <h3 className="text-sm font-bold text-vs-text leading-snug">
                       {qObj.question}
                     </h3>
                   </div>
@@ -266,8 +266,8 @@ export default function InterviewPage() {
                       onClick={() => toggleRecording(idx)}
                       className={`p-2 rounded-xl border transition-all ${
                         isRecording && activeQuestionIdx === idx
-                          ? 'bg-rose-500/20 border-rose-500 text-rose-400 animate-pulse'
-                          : 'bg-slate-800 border-slate-700 text-slate-400 hover:text-white'
+                          ? 'bg-rose-500/20 border-rose-500 text-rose-500 animate-pulse'
+                          : 'bg-vs-surface-2 border-vs-border text-vs-muted hover:text-vs-text'
                       }`}
                       title="Speak Answer"
                     >
@@ -277,7 +277,7 @@ export default function InterviewPage() {
                 </div>
 
                 {isRecording && activeQuestionIdx === idx && (
-                  <div className="p-3 bg-rose-500/10 border border-rose-500/30 rounded-xl flex items-center gap-2 text-xs font-semibold text-rose-400 animate-pulse">
+                  <div className="p-3 bg-rose-500/10 border border-rose-500/30 rounded-xl flex items-center gap-2 text-xs font-semibold text-rose-500 animate-pulse">
                     <span className="w-2 h-2 rounded-full bg-rose-500" />
                     Listening to speech input... Translating speech to viva answer text.
                   </div>
@@ -289,10 +289,10 @@ export default function InterviewPage() {
                   value={answers[idx]?.answer || ''}
                   onChange={(e) => handleAnswerChange(idx, e.target.value)}
                   placeholder="Explain your thought process, logic, and design choices in your own words..."
-                  className="w-full p-4 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500 leading-relaxed"
+                  className="w-full p-4 bg-vs-surface-2 border border-vs-border rounded-xl text-xs text-vs-text placeholder-vs-muted focus:outline-none focus:border-indigo-500 leading-relaxed"
                 />
 
-                <div className="flex justify-between items-center text-[11px] text-slate-500">
+                <div className="flex justify-between items-center text-[11px] text-vs-muted">
                   <span>Grounding Check: Reference specific functions or claims in your work.</span>
                   <span>{(answers[idx]?.answer || '').length} chars</span>
                 </div>
@@ -304,7 +304,7 @@ export default function InterviewPage() {
               <button
                 type="submit"
                 disabled={submitting}
-                className="w-full py-4 bg-gradient-to-r from-emerald-500 via-indigo-600 to-purple-600 hover:from-emerald-600 hover:to-purple-700 text-white font-extrabold text-sm rounded-2xl shadow-xl shadow-indigo-500/25 transition-all flex items-center justify-center gap-2"
+                className="w-full py-4 bg-gradient-to-r from-emerald-500 via-indigo-600 to-purple-600 hover:from-emerald-600 hover:to-purple-700 text-white font-extrabold text-sm rounded-2xl shadow-xl shadow-indigo-500/25 transition-all btn-scale flex items-center justify-center gap-2"
               >
                 <Send className="w-4 h-4" />
                 {submitting ? 'Python AI Service Scoring Consistency...' : 'Submit AI Viva Answers'}

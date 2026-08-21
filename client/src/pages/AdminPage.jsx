@@ -150,35 +150,35 @@ export default function AdminPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center">
+      <div className="min-h-screen bg-vs-bg text-vs-text flex items-center justify-center">
         <div className="text-center space-y-3">
           <div className="w-10 h-10 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto" />
-          <p className="text-sm text-slate-400">Loading VidyaSetu Admin Dashboard...</p>
+          <p className="text-sm text-vs-muted">Loading VidyaSetu Admin Dashboard...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white pb-20">
+    <div className="min-h-screen bg-vs-bg text-vs-text pb-20">
       
       {/* Top Banner */}
-      <div className="bg-slate-900 border-b border-slate-800 py-6 px-4 sm:px-8">
+      <div className="bg-vs-surface border-b border-vs-border py-6 px-4 sm:px-8">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div>
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/30 text-purple-300 text-xs font-semibold">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/30 text-purple-500 dark:text-purple-300 text-xs font-semibold">
               <LayoutDashboard className="w-4 h-4" />
               Platform Administration
             </div>
-            <h1 className="text-2xl font-extrabold text-white mt-2">Admin Course & Student Management</h1>
-            <p className="text-xs text-slate-400 mt-0.5">
+            <h1 className="text-2xl font-extrabold text-vs-text mt-2">Admin Course & Student Management</h1>
+            <p className="text-xs text-vs-muted mt-0.5">
               Create, edit, or audit courses and view enrolled student rosters.
             </p>
           </div>
 
           <button
             onClick={handleOpenCreate}
-            className="px-4 py-2.5 bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white font-bold text-xs rounded-xl shadow-lg transition-all flex items-center gap-2"
+            className="px-4 py-2.5 bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white font-bold text-xs rounded-xl shadow-lg transition-all btn-scale flex items-center gap-2"
           >
             <Plus className="w-4 h-4" />
             Create New Course
@@ -190,33 +190,33 @@ export default function AdminPage() {
         
         {/* Statistics Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-          <div className="p-6 bg-slate-900 border border-slate-800 rounded-3xl flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center font-bold">
+          <div className="p-6 bg-vs-surface border border-vs-border rounded-3xl flex items-center gap-4 shadow-sm">
+            <div className="w-12 h-12 rounded-2xl bg-indigo-500/20 text-indigo-500 flex items-center justify-center font-bold">
               <BookOpen className="w-6 h-6" />
             </div>
             <div>
-              <span className="text-xs text-slate-400 font-semibold uppercase">Total Courses</span>
-              <h3 className="text-2xl font-extrabold text-white mt-0.5">{courses.length}</h3>
+              <span className="text-xs text-vs-muted font-semibold uppercase">Total Courses</span>
+              <h3 className="text-2xl font-extrabold text-vs-text mt-0.5">{courses.length}</h3>
             </div>
           </div>
 
-          <div className="p-6 bg-slate-900 border border-slate-800 rounded-3xl flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold">
+          <div className="p-6 bg-vs-surface border border-vs-border rounded-3xl flex items-center gap-4 shadow-sm">
+            <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 text-emerald-500 flex items-center justify-center font-bold">
               <Users className="w-6 h-6" />
             </div>
             <div>
-              <span className="text-xs text-slate-400 font-semibold uppercase">Selected Roster Students</span>
-              <h3 className="text-2xl font-extrabold text-white mt-0.5">{enrolledStudents.length}</h3>
+              <span className="text-xs text-vs-muted font-semibold uppercase">Selected Roster Students</span>
+              <h3 className="text-2xl font-extrabold text-vs-text mt-0.5">{enrolledStudents.length}</h3>
             </div>
           </div>
 
-          <div className="p-6 bg-slate-900 border border-slate-800 rounded-3xl flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-purple-500/20 text-purple-400 flex items-center justify-center font-bold">
+          <div className="p-6 bg-vs-surface border border-vs-border rounded-3xl flex items-center gap-4 shadow-sm">
+            <div className="w-12 h-12 rounded-2xl bg-purple-500/20 text-purple-500 flex items-center justify-center font-bold">
               <ShieldCheck className="w-6 h-6" />
             </div>
             <div>
-              <span className="text-xs text-slate-400 font-semibold uppercase">Platform Engine</span>
-              <h3 className="text-sm font-bold text-emerald-400 mt-1">Python AI + Node MERN</h3>
+              <span className="text-xs text-vs-muted font-semibold uppercase">Platform Engine</span>
+              <h3 className="text-sm font-bold text-emerald-500 mt-1">Python AI + Node MERN</h3>
             </div>
           </div>
         </div>
@@ -226,7 +226,7 @@ export default function AdminPage() {
           
           {/* Courses List */}
           <div className="space-y-4">
-            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider px-1">
+            <h3 className="text-xs font-bold text-vs-muted uppercase tracking-wider px-1">
               Course Catalog ({courses.length})
             </h3>
 
@@ -239,14 +239,14 @@ export default function AdminPage() {
                     onClick={() => handleSelectCourse(c)}
                     className={`p-4 rounded-2xl border transition-all cursor-pointer flex items-center justify-between ${
                       isSelected
-                        ? 'bg-purple-950/40 border-purple-500/50 text-white shadow-lg'
-                        : 'bg-slate-900/80 hover:bg-slate-900 border-slate-800 text-slate-300'
+                        ? 'bg-purple-950/20 dark:bg-purple-950/40 border-purple-500/50 text-vs-text shadow-md'
+                        : 'bg-vs-surface hover:bg-vs-surface-2 border-vs-border text-vs-text'
                     }`}
                   >
                     <div className="space-y-1">
-                      <span className="text-xs font-bold text-indigo-400">{c.skill}</span>
-                      <h4 className="text-sm font-bold text-white line-clamp-1">{c.title}</h4>
-                      <p className="text-xs text-slate-500">₹{c.price} • {c.instructor}</p>
+                      <span className="text-xs font-bold text-indigo-500 dark:text-indigo-400">{c.skill}</span>
+                      <h4 className="text-sm font-bold text-vs-text line-clamp-1">{c.title}</h4>
+                      <p className="text-xs text-vs-muted">₹{c.price} • {c.instructor}</p>
                     </div>
 
                     <div className="flex items-center gap-1">
@@ -255,7 +255,7 @@ export default function AdminPage() {
                           e.stopPropagation();
                           handleOpenEdit(c);
                         }}
-                        className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800"
+                        className="p-1.5 rounded-lg text-vs-muted hover:text-vs-text hover:bg-vs-surface-2"
                         title="Edit Course"
                       >
                         <Edit3 className="w-4 h-4" />
@@ -266,7 +266,7 @@ export default function AdminPage() {
                           e.stopPropagation();
                           handleDeleteCourse(c._id);
                         }}
-                        className="p-1.5 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-rose-950/60"
+                        className="p-1.5 rounded-lg text-vs-muted hover:text-rose-500 hover:bg-rose-950/30"
                         title="Delete Course"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -281,30 +281,30 @@ export default function AdminPage() {
           {/* Enrolled Roster Panel */}
           {selectedCourse && (
             <div className="lg:col-span-2 space-y-6">
-              <div className="p-6 bg-slate-900 border border-slate-800 rounded-3xl space-y-6">
+              <div className="p-6 bg-vs-surface border border-vs-border rounded-3xl space-y-6 shadow-sm">
                 
-                <div className="flex justify-between items-start border-b border-slate-800 pb-4">
+                <div className="flex justify-between items-start border-b border-vs-border pb-4">
                   <div>
-                    <span className="text-xs font-bold text-indigo-400">{selectedCourse.skill}</span>
-                    <h2 className="text-xl font-bold text-white">{selectedCourse.title}</h2>
-                    <p className="text-xs text-slate-400 mt-1">{selectedCourse.description}</p>
+                    <span className="text-xs font-bold text-indigo-500 dark:text-indigo-400">{selectedCourse.skill}</span>
+                    <h2 className="text-xl font-bold text-vs-text">{selectedCourse.title}</h2>
+                    <p className="text-xs text-vs-muted mt-1">{selectedCourse.description}</p>
                   </div>
 
-                  <span className="px-3 py-1 bg-slate-950 border border-slate-800 rounded-xl text-xs font-mono font-bold text-emerald-400">
+                  <span className="px-3 py-1 bg-vs-surface-2 border border-vs-border rounded-xl text-xs font-mono font-bold text-emerald-500">
                     ₹{selectedCourse.price}
                   </span>
                 </div>
 
                 <div className="space-y-4">
-                  <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                    <Users className="w-4 h-4 text-emerald-400" />
+                  <h3 className="text-sm font-bold text-vs-text flex items-center gap-2">
+                    <Users className="w-4 h-4 text-emerald-500" />
                     Enrolled Students Roster ({enrolledStudents.length})
                   </h3>
 
                   {loadingStudents ? (
-                    <p className="text-xs text-slate-400">Loading student roster...</p>
+                    <p className="text-xs text-vs-muted">Loading student roster...</p>
                   ) : enrolledStudents.length === 0 ? (
-                    <p className="text-xs text-slate-500 italic p-4 bg-slate-950 rounded-2xl border border-slate-800/60">
+                    <p className="text-xs text-vs-muted italic p-4 bg-vs-surface-2 rounded-2xl border border-vs-border">
                       No students currently enrolled in this course.
                     </p>
                   ) : (
@@ -312,20 +312,20 @@ export default function AdminPage() {
                       {enrolledStudents.map((st, idx) => (
                         <div
                           key={idx}
-                          className="p-4 bg-slate-950 border border-slate-800 rounded-2xl flex items-center justify-between text-xs"
+                          className="p-4 bg-vs-surface-2 border border-vs-border rounded-2xl flex items-center justify-between text-xs"
                         >
                           <div>
-                            <h4 className="font-bold text-white">{st.student?.name || 'Student'}</h4>
-                            <span className="text-slate-500 text-[11px]">{st.student?.email}</span>
+                            <h4 className="font-bold text-vs-text">{st.student?.name || 'Student'}</h4>
+                            <span className="text-vs-muted text-[11px]">{st.student?.email}</span>
                           </div>
 
                           <div className="text-right">
                             <span className={`px-2.5 py-0.5 rounded text-[10px] font-bold uppercase ${
-                              st.status === 'VERIFIED' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-indigo-500/20 text-indigo-400'
+                              st.status === 'VERIFIED' ? 'bg-emerald-500/20 text-emerald-500' : 'bg-indigo-500/20 text-indigo-500'
                             }`}>
                               {st.status || 'ENROLLED'}
                             </span>
-                            <span className="block text-[10px] text-slate-500 mt-0.5">
+                            <span className="block text-[10px] text-vs-muted mt-0.5">
                               Enrolled: {new Date(st.createdAt).toLocaleDateString()}
                             </span>
                           </div>
@@ -345,101 +345,101 @@ export default function AdminPage() {
 
       {/* Course Modal (Create / Edit) */}
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-fade-in">
-          <div className="relative w-full max-w-2xl bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl overflow-hidden text-white max-h-[90vh] flex flex-col">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-vs-bg/80 backdrop-blur-sm animate-fade-in">
+          <div className="relative w-full max-w-2xl bg-vs-surface border border-vs-border rounded-3xl shadow-2xl overflow-hidden text-vs-text max-h-[90vh] flex flex-col">
             
-            <div className="p-6 bg-slate-950 border-b border-slate-800 flex items-center justify-between">
-              <h3 className="text-lg font-bold text-white">
+            <div className="p-6 bg-vs-surface-2 border-b border-vs-border flex items-center justify-between">
+              <h3 className="text-lg font-bold text-vs-text">
                 {editingCourse ? 'Edit Course' : 'Create New VidyaSetu Course'}
               </h3>
-              <button onClick={() => setShowModal(false)} className="p-1 text-slate-400 hover:text-white">
+              <button onClick={() => setShowModal(false)} className="p-1 text-vs-muted hover:text-vs-text">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <form onSubmit={handleSaveCourse} className="p-6 overflow-y-auto space-y-4 text-xs">
               {error && (
-                <div className="p-3 bg-rose-500/10 border border-rose-500/20 rounded-xl text-rose-400 font-semibold">
+                <div className="p-3 bg-rose-500/10 border border-rose-500/20 rounded-xl text-rose-500 font-semibold">
                   {error}
                 </div>
               )}
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block font-semibold text-slate-300 mb-1">Course Title</label>
+                  <label className="block font-semibold text-vs-text mb-1">Course Title</label>
                   <input
                     type="text"
                     required
                     value={form.title}
                     onChange={(e) => setForm({ ...form, title: e.target.value })}
-                    className="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-xl text-white focus:outline-none"
+                    className="w-full p-2.5 bg-vs-surface-2 border border-vs-border rounded-xl text-vs-text focus:outline-none focus:border-indigo-500"
                   />
                 </div>
 
                 <div>
-                  <label className="block font-semibold text-slate-300 mb-1">Skill Tag</label>
+                  <label className="block font-semibold text-vs-text mb-1">Skill Tag</label>
                   <input
                     type="text"
                     required
                     placeholder="e.g. React.js"
                     value={form.skill}
                     onChange={(e) => setForm({ ...form, skill: e.target.value })}
-                    className="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-xl text-white focus:outline-none"
+                    className="w-full p-2.5 bg-vs-surface-2 border border-vs-border rounded-xl text-vs-text focus:outline-none focus:border-indigo-500"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-3 gap-4">
                 <div>
-                  <label className="block font-semibold text-slate-300 mb-1">Instructor</label>
+                  <label className="block font-semibold text-vs-text mb-1">Instructor</label>
                   <input
                     type="text"
                     required
                     value={form.instructor}
                     onChange={(e) => setForm({ ...form, instructor: e.target.value })}
-                    className="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-xl text-white focus:outline-none"
+                    className="w-full p-2.5 bg-vs-surface-2 border border-vs-border rounded-xl text-vs-text focus:outline-none focus:border-indigo-500"
                   />
                 </div>
 
                 <div>
-                  <label className="block font-semibold text-slate-300 mb-1">Price (₹)</label>
+                  <label className="block font-semibold text-vs-text mb-1">Price (₹)</label>
                   <input
                     type="number"
                     required
                     value={form.price}
                     onChange={(e) => setForm({ ...form, price: Number(e.target.value) })}
-                    className="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-xl text-white focus:outline-none"
+                    className="w-full p-2.5 bg-vs-surface-2 border border-vs-border rounded-xl text-vs-text focus:outline-none focus:border-indigo-500"
                   />
                 </div>
 
                 <div>
-                  <label className="block font-semibold text-slate-300 mb-1">Category</label>
+                  <label className="block font-semibold text-vs-text mb-1">Category</label>
                   <input
                     type="text"
                     required
                     value={form.category}
                     onChange={(e) => setForm({ ...form, category: e.target.value })}
-                    className="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-xl text-white focus:outline-none"
+                    className="w-full p-2.5 bg-vs-surface-2 border border-vs-border rounded-xl text-vs-text focus:outline-none focus:border-indigo-500"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block font-semibold text-slate-300 mb-1">Description</label>
+                <label className="block font-semibold text-vs-text mb-1">Description</label>
                 <textarea
                   rows={2}
                   required
                   value={form.description}
                   onChange={(e) => setForm({ ...form, description: e.target.value })}
-                  className="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-xl text-white focus:outline-none"
+                  className="w-full p-2.5 bg-vs-surface-2 border border-vs-border rounded-xl text-vs-text focus:outline-none focus:border-indigo-500"
                 />
               </div>
 
-              <div className="border-t border-slate-800 pt-4 space-y-3">
-                <h4 className="font-bold text-indigo-400">Assignment Challenge Setup</h4>
+              <div className="border-t border-vs-border pt-4 space-y-3">
+                <h4 className="font-bold text-indigo-500 dark:text-indigo-400">Assignment Challenge Setup</h4>
                 
                 <div>
-                  <label className="block font-semibold text-slate-300 mb-1">Assignment Title</label>
+                  <label className="block font-semibold text-vs-text mb-1">Assignment Title</label>
                   <input
                     type="text"
                     required
@@ -448,12 +448,12 @@ export default function AdminPage() {
                       ...form,
                       assignment: { ...form.assignment, title: e.target.value }
                     })}
-                    className="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-xl text-white focus:outline-none"
+                    className="w-full p-2.5 bg-vs-surface-2 border border-vs-border rounded-xl text-vs-text focus:outline-none focus:border-indigo-500"
                   />
                 </div>
 
                 <div>
-                  <label className="block font-semibold text-slate-300 mb-1">Assignment Prompt</label>
+                  <label className="block font-semibold text-vs-text mb-1">Assignment Prompt</label>
                   <textarea
                     rows={3}
                     required
@@ -462,23 +462,23 @@ export default function AdminPage() {
                       ...form,
                       assignment: { ...form.assignment, prompt: e.target.value }
                     })}
-                    className="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-xl text-white focus:outline-none"
+                    className="w-full p-2.5 bg-vs-surface-2 border border-vs-border rounded-xl text-vs-text focus:outline-none focus:border-indigo-500"
                   />
                 </div>
               </div>
 
-              <div className="pt-4 border-t border-slate-800 flex justify-end gap-3">
+              <div className="pt-4 border-t border-vs-border flex justify-end gap-3">
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
-                  className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl font-semibold"
+                  className="px-4 py-2 bg-vs-surface-2 hover:bg-vs-surface text-vs-muted hover:text-vs-text rounded-xl font-semibold btn-scale border border-vs-border"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="px-6 py-2 bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white rounded-xl font-bold shadow-lg"
+                  className="px-6 py-2 bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white rounded-xl font-bold shadow-lg btn-scale"
                 >
                   {submitting ? 'Saving...' : 'Save Course'}
                 </button>
