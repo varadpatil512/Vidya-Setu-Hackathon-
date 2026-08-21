@@ -2,3 +2,9 @@ node_modules
 .env
 *.log
 .DS_Store
+__pycache__/
+*.pyc
+*.timestamp-*.mjs
+venv/
+.venv/
+\n.vscode/\n.claude/\n.idea/

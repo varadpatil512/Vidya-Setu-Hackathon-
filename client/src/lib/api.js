@@ -32,6 +32,7 @@ export const errMsg = (err) => err.response?.data?.message || err.message || 'So
 export const authAPI = {
   login: (credentials) => api.post('/auth/login', credentials),
   register: (data) => api.post('/auth/register', data),
+  googleLogin: (payload) => api.post('/auth/google', payload),
   getMe: () => api.get('/auth/me'),
 };
 

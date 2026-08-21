@@ -32,6 +32,13 @@ export function AuthProvider({ children }) {
     return res.data.user;
   };
 
+  const googleAuth = async (payload) => {
+    const res = await authAPI.googleLogin(payload);
+    setToken(res.data.token);
+    setUser(res.data.user);
+    return res.data.user;
+  };
+
   const quickLogin = async (role = 'STUDENT') => {
     let email = 'student@vidyasetu.dev';
     if (role === 'TEACHER') email = 'teacher@vidyasetu.dev';
@@ -45,7 +52,7 @@ export function AuthProvider({ children }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, quickLogin, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, register, googleAuth, quickLogin, logout }}>
       {children}
     </AuthContext.Provider>
   );
