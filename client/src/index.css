@@ -1,5 +1,20 @@
 @import "tailwindcss";
 
 body {
-  @apply bg-slate-100 text-slate-900 antialiased;
+  @apply bg-slate-950 text-white antialiased selection:bg-indigo-500 selection:text-white;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }

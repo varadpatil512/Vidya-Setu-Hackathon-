@@ -1,11 +1,86 @@
-export default function App() {
-  return (
-    <div className="min-h-screen flex items-center justify-center">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold text-indigo-600">Vidya-Setu</h1>
-        <p className="mt-2 text-slate-500">Learn. Do. Prove.</p>
-        <p className="mt-4 text-sm text-slate-400">Frontend UI being built — backend API is fully functional.</p>
+import { useState } from 'react';
+import { Routes, Route, Navigate } from 'react-router-dom';
+import { useAuth } from './context/AuthContext';
+import Navbar from './components/Navbar';
+import AuthModal from './components/AuthModal';
+import ExplorePage from './pages/ExplorePage';
+import ClassroomPage from './pages/ClassroomPage';
+import InterviewPage from './pages/InterviewPage';
+import TeacherQueuePage from './pages/TeacherQueuePage';
+import AdminPage from './pages/AdminPage';
+import PortfolioPage from './pages/PortfolioPage';
+
+function ProtectedRoute({ children, roles }) {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center">
+        <div className="w-10 h-10 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin" />
       </div>
+    );
+  }
+
+  if (!user) {
+    return <Navigate to="/" replace />;
+  }
+
+  if (roles && !roles.includes(user.role)) {
+    return <Navigate to="/" replace />;
+  }
+
+  return children;
+}
+
+export default function App() {
+  const [authModalOpen, setAuthModalOpen] = useState(false);
+
+  return (
+    <div className="min-h-screen bg-slate-950 text-white font-sans antialiased">
+      <Navbar onOpenAuth={() => setAuthModalOpen(true)} />
+      
+      <main>
+        <Routes>
+          <Route path="/" element={<ExplorePage onOpenAuth={() => setAuthModalOpen(true)} />} />
+          <Route
+            path="/course/:id"
+            element={
+              <ProtectedRoute>
+                <ClassroomPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/interview/:submissionId"
+            element={
+              <ProtectedRoute>
+                <InterviewPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/teacher"
+            element={
+              <ProtectedRoute roles={['TEACHER', 'ADMIN']}>
+                <TeacherQueuePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute roles={['ADMIN']}>
+                <AdminPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route path="/portfolio" element={<PortfolioPage />} />
+          <Route path="/portfolio/:userId" element={<PortfolioPage />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </main>
+
+      <AuthModal isOpen={authModalOpen} onClose={() => setAuthModalOpen(false)} />
     </div>
   );
 }
