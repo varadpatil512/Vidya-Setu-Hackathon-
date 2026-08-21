@@ -12,42 +12,22 @@ import TeacherReview from './models/TeacherReview.js';
 // Placeholder demo videos — 5 per course
 const htmlCssVideos = [
   { title: 'HTML Tags & Document Structure', url: 'https://youtu.be/6qwOQe2BiYY?si=gn5JmGyjkHBFI61G', durationSec: 90 },
-  { title: 'CSS Selectors & Syntax', url: 'https://www.youtube.com/watch?v=1PnVor36_40', durationSec: 100 },
-  { title: 'Color, Typography & Fonts', url: 'https://www.youtube.com/watch?v=yfoY53QXEnI', durationSec: 110 },
-  { title: 'Inline vs External CSS', url: 'https://www.youtube.com/watch?v=zJSY8tbf_ys', durationSec: 80 },
-  { title: 'Building Your First Web Component', url: 'https://youtu.be/XtwTjwUZSTs?si=VMk3zJpwFbw1wOQ0', durationSec: 120 },
 ];
 
 const pythonVideos = [
   { title: 'Python Syntax & Variables', url: 'https://www.youtube.com/watch?v=kqtD5dpn9C8', durationSec: 90 },
-  { title: 'Booleans & Comparison Operators', url: 'https://www.youtube.com/watch?v=PkZNo7MFNFg', durationSec: 100 },
-  { title: 'If & Else Decision Flow', url: 'https://www.youtube.com/watch?v=hdI2bqOjy3k', durationSec: 110 },
-  { title: 'The Modulo Operator (%) Explained', url: 'https://www.youtube.com/watch?v=zJSY8tbf_ys', durationSec: 80 },
-  { title: 'Writing Clean Conditionals', url: 'https://www.youtube.com/watch?v=zJSY8tbf_ys', durationSec: 120 },
 ];
 
 const jsVideos = [
   { title: 'Selecting Elements with querySelector', url: 'https://www.youtube.com/watch?v=l72i5B5m4jM', durationSec: 90 },
-  { title: 'DOM Properties & Style Mutations', url: 'https://www.youtube.com/watch?v=ea0o2EITo5s', durationSec: 100 },
-  { title: 'Click Events & onclick Handlers', url: 'https://www.youtube.com/watch?v=XF1_MlZ5l6w', durationSec: 110 },
-  { title: 'Changing Dynamic Background Colors', url: 'https://www.youtube.com/watch?v=8f7OI5jAAys', durationSec: 80 },
-  { title: 'Building Interactive Buttons', url: 'https://www.youtube.com/watch?v=3PHXvlpOkf4', durationSec: 120 },
 ];
 
 const sqlVideos = [
   { title: 'Relational Database Fundamentals', url: 'https://www.youtube.com/watch?v=HXV3zeQKqGY', durationSec: 90 },
-  { title: 'The SELECT Statement', url: 'https://www.youtube.com/watch?v=PkZNo7MFNFg', durationSec: 100 },
-  { title: 'FROM & Table References', url: 'https://www.youtube.com/watch?v=hdI2bqOjy3k', durationSec: 110 },
-  { title: 'Filtering Rows with WHERE', url: 'https://www.youtube.com/watch?v=zJSY8tbf_ys', durationSec: 80 },
-  { title: 'Numeric & Comparison Conditions', url: 'https://www.youtube.com/watch?v=cvvwmlBJ4g8', durationSec: 120 },
 ];
 
 const flexboxVideos = [
   { title: 'Flexbox Containers & Items', url: 'https://www.youtube.com/watch?v=fYq5PXgSsbE', durationSec: 90 },
-  { title: 'Main Axis vs Cross Axis', url: 'https://www.youtube.com/watch?v=PkZNo7MFNFg', durationSec: 100 },
-  { title: 'justify-content Deep Dive', url: 'https://www.youtube.com/watch?v=hdI2bqOjy3k', durationSec: 110 },
-  { title: 'align-items & Vertical Alignment', url: 'https://www.youtube.com/watch?v=zJSY8tbf_ys', durationSec: 80 },
-  { title: 'Perfect Centering Patterns', url: 'https://www.youtube.com/watch?v=cvvwmlBJ4g8', durationSec: 120 },
 ];
 
 const courses = [
@@ -184,7 +164,7 @@ export async function seedDatabase({ silentIfNotEmpty = false, force = false } =
 
   console.log('[seed] created users:');
   demoUsers.forEach(u => console.log(`   ${u.role.padEnd(7)} ${u.email} / ${u.password}`));
-  console.log(`[seed] created ${createdCourses.length} courses (5 videos each)`);
+  console.log(`[seed] created ${createdCourses.length} courses (1 video each)`);
 }
 
 // run directly: npm run seed (uses MONGO_URI, or in-memory DB if none set)

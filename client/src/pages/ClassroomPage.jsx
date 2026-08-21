@@ -435,7 +435,7 @@ export default function ClassroomPage() {
                   </div>
                   <div>
                     <span className="text-[11px] uppercase tracking-wider text-vs-muted font-semibold block">
-                      Module {currentVideoIdx + 1} of {videosCount}
+                      {videosCount > 1 ? `Module ${currentVideoIdx + 1} of ${videosCount}` : `Module ${currentVideoIdx + 1}`}
                     </span>
                     <h3 className="text-sm font-bold text-vs-text line-clamp-1">{currentVideo.title}</h3>
                   </div>
