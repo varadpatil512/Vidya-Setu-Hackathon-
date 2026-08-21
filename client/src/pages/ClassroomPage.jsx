@@ -374,19 +374,6 @@ export default function ClassroomPage() {
             <FileText className="w-3.5 h-3.5" />
             Notes Editor
           </button>
-
-          <button
-            onClick={() => setActiveTab('assignment')}
-            className={`px-4 py-2 rounded text-xs font-semibold transition-all btn-scale flex items-center gap-2 ${
-              activeTab === 'assignment'
-                ? 'bg-vs-accent text-white'
-                : 'text-vs-muted hover:text-vs-text'
-            }`}
-          >
-            <Code2 className="w-3.5 h-3.5" />
-            Assignment Challenge
-            {!allVideosWatched && <Lock className="w-3 h-3 text-amber-500 ml-1" />}
-          </button>
         </div>
       </div>
 

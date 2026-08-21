@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { X, LogIn, UserPlus, Lock, Mail, User, Shield, Globe, Sparkles } from 'lucide-react';
+import { X, Lock, Mail, User, Shield, Globe } from 'lucide-react';
 import { errMsg } from '../lib/api';
 
 export default function AuthModal({ isOpen, onClose }) {
-  const { login, register, googleAuth, quickLogin } = useAuth();
+  const { login, register, googleAuth } = useAuth();
   const [isRegister, setIsRegister] = useState(false);
   const [showGooglePrompt, setShowGooglePrompt] = useState(false);
   const [googleEmail, setGoogleEmail] = useState('');
@@ -109,19 +109,6 @@ export default function AuthModal({ isOpen, onClose }) {
     }
   };
 
-  const handleDemoLogin = async (role) => {
-    setError('');
-    setLoading(true);
-    try {
-      await quickLogin(role);
-      onClose();
-    } catch (err) {
-      setError(errMsg(err));
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const inputClass = "w-full pl-9 pr-3 py-2.5 bg-vs-surface-2 border border-vs-border rounded text-sm text-vs-text placeholder-vs-subtle focus:outline-none focus:border-vs-accent focus:ring-1 focus:ring-vs-accent/20 transition-colors";
 
   return (
@@ -209,7 +196,94 @@ export default function AuthModal({ isOpen, onClose }) {
             </form>
           ) : (
             <>
-              {/* Google Button */}
+              {error && (
+                <div className="p-3 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded text-xs font-medium text-red-600 dark:text-red-400">
+                  {error}
+                </div>
+              )}
+
+              {/* Email/Password Form FIRST */}
+              <form onSubmit={handleSubmit} className="space-y-4">
+                {isRegister && (
+                  <div>
+                    <label className="block text-xs font-semibold text-vs-text mb-1">Full Name</label>
+                    <div className="relative">
+                      <User className="absolute left-3 top-2.5 w-4 h-4 text-vs-subtle" />
+                      <input
+                        type="text"
+                        required
+                        placeholder="Your full name"
+                        value={form.name}
+                        onChange={(e) => setForm({ ...form, name: e.target.value })}
+                        className={inputClass}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                <div>
+                  <label className="block text-xs font-semibold text-vs-text mb-1">Email Address</label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-2.5 w-4 h-4 text-vs-subtle" />
+                    <input
+                      type="email"
+                      required
+                      placeholder="you@example.com"
+                      value={form.email}
+                      onChange={(e) => setForm({ ...form, email: e.target.value })}
+                      className={inputClass}
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-vs-text mb-1">Password</label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-2.5 w-4 h-4 text-vs-subtle" />
+                    <input
+                      type="password"
+                      required
+                      placeholder="••••••••"
+                      value={form.password}
+                      onChange={(e) => setForm({ ...form, password: e.target.value })}
+                      className={inputClass}
+                    />
+                  </div>
+                </div>
+
+                {isRegister && (
+                  <div>
+                    <label className="block text-xs font-semibold text-vs-text mb-1">I am a</label>
+                    <div className="relative">
+                      <Shield className="absolute left-3 top-2.5 w-4 h-4 text-vs-subtle" />
+                      <select
+                        value={form.role}
+                        onChange={(e) => setForm({ ...form, role: e.target.value })}
+                        className={inputClass + " appearance-none"}
+                      >
+                        <option value="STUDENT">Student</option>
+                        <option value="TEACHER">Teacher</option>
+                      </select>
+                    </div>
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full py-2.5 bg-vs-accent hover:bg-vs-accent-hover text-white font-semibold text-sm rounded transition-colors btn-scale"
+                >
+                  {loading ? 'Processing...' : isRegister ? 'Create Account' : 'Sign In'}
+                </button>
+              </form>
+
+              {/* Separator */}
+              <div className="relative flex items-center justify-center my-2">
+                <div className="border-t border-vs-border w-full" />
+                <span className="bg-vs-surface px-3 text-xs text-vs-muted font-medium absolute">or</span>
+              </div>
+
+              {/* Google Sign In at Bottom */}
               {googleClientId ? (
                 <div ref={googleBtnRef} className="flex justify-center w-full min-h-[44px]" />
               ) : (
@@ -228,124 +302,11 @@ export default function AuthModal({ isOpen, onClose }) {
                   {isRegister ? 'Sign up with Google' : 'Sign in with Google'}
                 </button>
               )}
-
-              <div className="relative flex items-center">
-                <div className="border-t border-vs-border w-full" />
-                <span className="bg-vs-surface px-3 text-xs text-vs-muted absolute left-1/2 -translate-x-1/2">or</span>
-              </div>
             </>
           )}
 
-          {error && (
-            <div className="p-3 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded text-xs font-medium text-red-600 dark:text-red-400">
-              {error}
-            </div>
-          )}
-
-          {/* Email/Password Form */}
-          {!showGooglePrompt && (
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {isRegister && (
-                <div>
-                  <label className="block text-xs font-semibold text-vs-text mb-1">Full Name</label>
-                  <div className="relative">
-                    <User className="absolute left-3 top-2.5 w-4 h-4 text-vs-subtle" />
-                    <input
-                      type="text"
-                      required
-                      placeholder="Your full name"
-                      value={form.name}
-                      onChange={(e) => setForm({ ...form, name: e.target.value })}
-                      className={inputClass}
-                    />
-                  </div>
-                </div>
-              )}
-
-              <div>
-                <label className="block text-xs font-semibold text-vs-text mb-1">Email Address</label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-2.5 w-4 h-4 text-vs-subtle" />
-                  <input
-                    type="email"
-                    required
-                    placeholder="you@example.com"
-                    value={form.email}
-                    onChange={(e) => setForm({ ...form, email: e.target.value })}
-                    className={inputClass}
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-vs-text mb-1">Password</label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-2.5 w-4 h-4 text-vs-subtle" />
-                  <input
-                    type="password"
-                    required
-                    placeholder="••••••••"
-                    value={form.password}
-                    onChange={(e) => setForm({ ...form, password: e.target.value })}
-                    className={inputClass}
-                  />
-                </div>
-              </div>
-
-              {isRegister && (
-                <div>
-                  <label className="block text-xs font-semibold text-vs-text mb-1">I am a</label>
-                  <div className="relative">
-                    <Shield className="absolute left-3 top-2.5 w-4 h-4 text-vs-subtle" />
-                    <select
-                      value={form.role}
-                      onChange={(e) => setForm({ ...form, role: e.target.value })}
-                      className={inputClass + " appearance-none"}
-                    >
-                      <option value="STUDENT">Student</option>
-                      <option value="TEACHER">Teacher</option>
-                    </select>
-                  </div>
-                </div>
-              )}
-
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full py-2.5 bg-vs-accent hover:bg-vs-accent-hover text-white font-semibold text-sm rounded transition-colors btn-scale"
-              >
-                {loading ? 'Processing...' : isRegister ? 'Create Account' : 'Sign In'}
-              </button>
-            </form>
-          )}
-
-          {/* Demo Accounts — for hackathon evaluators */}
-          <div className="bg-vs-surface-2 border border-vs-border rounded p-3">
-            <div className="flex items-center gap-1.5 text-xs font-semibold text-vs-muted mb-2">
-              <Sparkles className="w-3.5 h-3.5" />
-              Quick Demo Access
-            </div>
-            <div className="grid grid-cols-3 gap-2">
-              {[
-                { role: 'STUDENT', label: 'Student', emoji: '🎓' },
-                { role: 'TEACHER', label: 'Teacher', emoji: '👨‍🏫' },
-                { role: 'ADMIN',   label: 'Admin',   emoji: '⚡' },
-              ].map(({ role, label, emoji }) => (
-                <button
-                  key={role}
-                  type="button"
-                  onClick={() => handleDemoLogin(role)}
-                  disabled={loading}
-                  className="py-2 text-xs font-medium text-vs-muted hover:text-vs-accent border border-vs-border hover:border-vs-accent/40 rounded bg-vs-surface hover:bg-vs-accent-light transition-all text-center"
-                >
-                  {emoji} {label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Toggle */}
-          <div className="text-center pt-1 border-t border-vs-border">
+          {/* Toggle link */}
+          <div className="text-center pt-2 border-t border-vs-border">
             <button
               type="button"
               onClick={() => { setIsRegister(!isRegister); setError(''); }}
