@@ -10,25 +10,16 @@ const router = Router();
 
 router.use(auth, requireRole('TEACHER', 'ADMIN'));
 
-// Helper: Get array of course IDs assigned to or created by logged-in teacher (or all course IDs if admin)
+// Helper: Get array of all course IDs for review queue (accessible by all TEACHER and ADMIN users)
 async function getAssignedCourseIds(user) {
-  if (user.role === 'ADMIN') {
-    const all = await Course.find().select('_id');
-    return all.map(c => c._id);
-  }
-  const assigned = await Course.find({
-    $or: [{ assignedTeacher: user._id }, { createdBy: user._id }]
-  }).select('_id');
-  return assigned.map(c => c._id);
+  const all = await Course.find().select('_id');
+  return all.map(c => c._id);
 }
 
-// GET /api/teacher/courses - Fetch courses created by or assigned to logged-in teacher
+// GET /api/teacher/courses - Fetch all courses visible for teacher review queue
 router.get('/courses', async (req, res) => {
   try {
-    const filter = req.user.role === 'ADMIN'
-      ? {}
-      : { $or: [{ assignedTeacher: req.user._id }, { createdBy: req.user._id }] };
-    const courses = await Course.find(filter)
+    const courses = await Course.find({})
       .populate('assignedTeacher', 'name email')
       .populate('createdBy', 'name email')
       .sort({ createdAt: -1 });
@@ -88,16 +79,12 @@ router.post('/courses', async (req, res) => {
   }
 });
 
-// GET /api/teacher/courses/:courseId/students - Enrolled roster for assigned course
+// GET /api/teacher/courses/:courseId/students - Enrolled roster for course (accessible by TEACHER and ADMIN)
 router.get('/courses/:courseId/students', async (req, res) => {
   try {
     const { courseId } = req.params;
     const course = await Course.findById(courseId);
     if (!course) return res.status(404).json({ message: 'Course not found' });
-
-    if (req.user.role !== 'ADMIN' && String(course.assignedTeacher) !== String(req.user._id)) {
-      return res.status(403).json({ message: 'Access denied: You are not assigned to this course' });
-    }
 
     const enrollments = await Enrollment.find({ course: courseId })
       .populate('student', 'name email')
@@ -120,7 +107,7 @@ router.get('/courses/:courseId/students', async (req, res) => {
   }
 });
 
-// GET /api/teacher/queue - Flagged submissions awaiting human verification (scoped to assigned courses)
+// GET /api/teacher/queue - Flagged submissions awaiting human verification across all courses
 router.get('/queue', async (req, res) => {
   try {
     const assignedIds = await getAssignedCourseIds(req.user);
@@ -128,10 +115,6 @@ router.get('/queue', async (req, res) => {
 
     let targetCourseIds = assignedIds;
     if (courseId) {
-      const isAssigned = assignedIds.some(id => String(id) === String(courseId));
-      if (!isAssigned) {
-        return res.status(403).json({ message: 'Access denied: You are not assigned to this course' });
-      }
       targetCourseIds = [courseId];
     }
 
@@ -184,14 +167,6 @@ router.post('/reviews', async (req, res) => {
     }
     const submission = await Submission.findById(submissionId).populate('course');
     if (!submission) return res.status(404).json({ message: 'Submission not found' });
-
-    if (req.user.role !== 'ADMIN') {
-      const assignedIds = await getAssignedCourseIds(req.user);
-      const isAssigned = assignedIds.some(id => String(id) === String(submission.course._id || submission.course));
-      if (!isAssigned) {
-        return res.status(403).json({ message: 'Access denied: You are not assigned to review submissions for this course' });
-      }
-    }
 
     if (submission.status !== 'FLAGGED') {
       return res.status(409).json({ message: `Only FLAGGED submissions can be reviewed (current status: ${submission.status})` });

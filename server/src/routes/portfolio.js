@@ -38,7 +38,34 @@ async function buildPortfolio(userId) {
     };
   }));
 
-  return { user, verifiedSkills: entries };
+  const pending = await Submission.find({
+    student: userId,
+    status: { $in: ['FLAGGED', 'INTERVIEW_DONE'] },
+  })
+    .populate('course', 'title skill')
+    .sort({ updatedAt: -1 });
+
+  const pendingReview = await Promise.all(pending.map(async (s) => {
+    const interview = await Interview.findOne({ submission: s._id });
+    return {
+      submissionId: s._id,
+      skill: s.course?.skill || s.course?.title,
+      courseTitle: s.course?.title,
+      status: s.status,
+      statusLabel: s.status === 'FLAGGED' ? 'Awaiting teacher approval' : 'Processing interview defence',
+      flagReason: s.flagReason || (s.status === 'FLAGGED' ? 'Consistency audit queued for faculty review' : 'Evaluating defence responses'),
+      aiScore: s.aiScore,
+      submittedAt: s.updatedAt || s.createdAt,
+      evidence: {
+        submissionType: s.type,
+        interviewQuestions: interview?.questions?.length || 0,
+        pasteEvents: s.pasteEvents || 0,
+        snapshotCount: s.snapshots?.length || 0,
+      },
+    };
+  }));
+
+  return { user, verifiedSkills: entries, pendingReview };
 }
 
 // Portfolio is student-only

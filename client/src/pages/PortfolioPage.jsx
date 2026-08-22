@@ -12,11 +12,14 @@ import {
   Copy,
   Check,
   X,
+  Clock,
+  Hourglass,
+  AlertCircle,
 } from 'lucide-react';
 
 export default function PortfolioPage() {
   const { userId } = useParams();
-  const { user: currentUser } = useAuth();
+  const { user: currentUser, loading: authLoading } = useAuth();
 
   const [portfolio, setPortfolio] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -25,10 +28,16 @@ export default function PortfolioPage() {
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
+    if (authLoading) return; // Delay fetch until AuthContext confirms auth status
+    if (!userId && !currentUser) {
+      setLoading(false);
+      return;
+    }
     fetchPortfolio();
-  }, [userId, currentUser]);
+  }, [userId, currentUser, authLoading]);
 
   const fetchPortfolio = async () => {
+    setError('');
     try {
       setLoading(true);
       let res;
@@ -64,6 +73,7 @@ export default function PortfolioPage() {
 
   const profileUser = portfolio?.user || currentUser;
   const verifiedSkills = portfolio?.verifiedSkills || [];
+  const pendingReview = portfolio?.pendingReview || [];
 
   return (
     <div className="min-h-screen bg-vs-bg text-vs-text pb-20">
@@ -90,6 +100,7 @@ export default function PortfolioPage() {
               <p className="text-xs text-vs-muted mt-1.5 flex items-center gap-1.5">
                 <Award className="w-3.5 h-3.5 text-vs-accent" />
                 {verifiedSkills.length} verified skill{verifiedSkills.length !== 1 ? 's' : ''}
+                {pendingReview.length > 0 && ` · ${pendingReview.length} pending review`}
                 {' '}&mdash; backed by code submissions, AI viva, and faculty review.
               </p>
             </div>
@@ -107,11 +118,72 @@ export default function PortfolioPage() {
       </div>
 
       {/* Main Content */}
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-10">
 
         {error && (
           <div className="p-4 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded text-sm text-red-600 dark:text-red-400">
             {error}
+          </div>
+        )}
+
+        {/* Pending Faculty Review Section */}
+        {pendingReview.length > 0 && (
+          <div className="space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-xl bg-amber-500/10 text-amber-500 border border-amber-500/20 flex-shrink-0">
+                <Clock className="w-5 h-5" />
+              </div>
+              <div>
+                <h2 className="text-lg font-bold text-vs-text flex items-center gap-2">
+                  Pending Faculty Review
+                  <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-500/10 text-amber-500 border border-amber-500/30">
+                    {pendingReview.length} in queue
+                  </span>
+                </h2>
+                <p className="text-xs text-vs-muted mt-0.5">
+                  These submissions completed the AI Viva defence and are queued for teacher verification. Once approved, your badge will appear below automatically.
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {pendingReview.map((item, idx) => (
+                <div
+                  key={idx}
+                  className="bg-vs-surface border border-amber-500/30 dark:border-amber-500/20 rounded-xl p-5 shadow-sm space-y-3 relative overflow-hidden"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center flex-shrink-0">
+                        <Hourglass className="w-5 h-5 text-amber-500 animate-pulse" />
+                      </div>
+                      <div>
+                        <span className="text-[10px] font-bold text-amber-500 uppercase tracking-wider block">
+                          {item.status === 'FLAGGED' ? 'Awaiting Faculty Audit' : 'Processing Defence'}
+                        </span>
+                        <h3 className="text-sm font-bold text-vs-text line-clamp-1">{item.skill}</h3>
+                      </div>
+                    </div>
+
+                    {item.aiScore && (
+                      <span className="px-2 py-0.5 rounded bg-vs-surface-2 text-vs-accent text-xs font-bold border border-vs-border font-mono flex-shrink-0">
+                        AI Score: {item.aiScore}/100
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="p-3 bg-amber-500/5 dark:bg-amber-950/20 border border-amber-500/20 rounded-lg text-xs text-amber-800 dark:text-amber-200">
+                    <span className="font-semibold block mb-0.5">Status: {item.statusLabel}</span>
+                    <p className="text-[11px] opacity-90 leading-relaxed">{item.flagReason}</p>
+                  </div>
+
+                  <div className="flex items-center justify-between text-xs text-vs-muted pt-1 border-t border-vs-border">
+                    <span className="truncate max-w-[200px]">{item.courseTitle}</span>
+                    <span>Submitted {new Date(item.submittedAt).toLocaleDateString()}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         )}
 
