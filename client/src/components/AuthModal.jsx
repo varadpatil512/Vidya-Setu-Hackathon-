@@ -34,6 +34,21 @@ export default function AuthModal({ isOpen, onClose }) {
   };
 
   useEffect(() => {
+    if (isOpen) {
+      setForm({
+        name: '',
+        email: '',
+        password: '',
+        role: 'STUDENT',
+      });
+      setError('');
+      setShowGooglePrompt(false);
+      setGoogleEmail('');
+      setGoogleName('');
+    }
+  }, [isOpen]);
+
+  useEffect(() => {
     if (!isOpen) return;
 
     if (googleClientId && window.google) {

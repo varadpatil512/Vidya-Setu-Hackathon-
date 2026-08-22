@@ -39,6 +39,7 @@ const courseSchema = new mongoose.Schema({
   assignedTeacher: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
   status: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'approved', index: true },
+  isUpdate: { type: Boolean, default: false },
   rejectionReason: { type: String, default: '' },
 }, { timestamps: true });
 

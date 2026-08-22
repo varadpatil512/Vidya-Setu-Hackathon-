@@ -2,10 +2,10 @@ import { useState, useEffect, useCallback } from 'react';
 import { coursesAPI, adminAPI, errMsg } from '../lib/api';
 import {
   LayoutDashboard, BookOpen, Clock, Users, GraduationCap,
-  ShieldAlert, MessageSquare, Plus, Trash2, Edit3, X,
-  CheckCircle2, AlertTriangle, Star, ExternalLink, Check,
+  MessageSquare, Plus, Trash2, Edit3, X,
+  CheckCircle2, Star, ExternalLink, Check,
   XCircle, ChevronRight, TrendingUp, Award, Activity,
-  FileCode2, BarChart3, Globe, RefreshCw,
+  BarChart3, Globe, RefreshCw,
 } from 'lucide-react';
 
 const NAV_SECTIONS = [
@@ -14,7 +14,6 @@ const NAV_SECTIONS = [
   { id: 'courses',     label: 'All Courses',          icon: BookOpen },
   { id: 'students',    label: 'Enrolled Students',    icon: Users },
   { id: 'teachers',    label: 'Teachers',             icon: GraduationCap },
-  { id: 'queue',       label: 'Global Review Queue',  icon: ShieldAlert },
   { id: 'feedback',    label: 'Feedback Overview',    icon: MessageSquare },
 ];
 
@@ -78,14 +77,6 @@ export default function AdminPage() {
   const [loadingTeachers, setLoadingTeachers] = useState(false);
   const [expandedTeacher, setExpandedTeacher] = useState(null);
 
-  // Review Queue (Global)
-  const [queue, setQueue] = useState([]);
-  const [loadingQueue, setLoadingQueue] = useState(false);
-  const [selectedSub, setSelectedSub] = useState(null);
-  const [queueDecision, setQueueDecision] = useState('APPROVE');
-  const [queueComments, setQueueComments] = useState('');
-  const [submittingReview, setSubmittingReview] = useState(false);
-  const [reviewMsg, setReviewMsg] = useState('');
 
   // Feedback
   const [feedbackData, setFeedbackData] = useState(null);
@@ -149,17 +140,6 @@ export default function AdminPage() {
     finally { setLoadingTeachers(false); }
   }, []);
 
-  const fetchQueue = useCallback(async () => {
-    try {
-      setLoadingQueue(true);
-      const res = await adminAPI.getQueue();
-      const items = res.data || [];
-      setQueue(items);
-      if (items.length > 0 && !selectedSub) setSelectedSub(items[0]);
-    } catch (err) { console.error(err); }
-    finally { setLoadingQueue(false); }
-  }, []);
-
   const fetchFeedback = useCallback(async () => {
     try {
       setLoadingFeedback(true);
@@ -181,7 +161,6 @@ export default function AdminPage() {
     if (activeSection === 'pending') fetchPending();
     if (activeSection === 'students' && students.length === 0) fetchStudents();
     if (activeSection === 'teachers' && teachers.length === 0) fetchTeachers();
-    if (activeSection === 'queue' && queue.length === 0) fetchQueue();
     if (activeSection === 'feedback' && !feedbackData) fetchFeedback();
   }, [activeSection]);
 
@@ -269,25 +248,6 @@ export default function AdminPage() {
     }
   };
 
-  // ─────────────────── Queue Review ───────────────────
-  const handleQueueReview = async (e) => {
-    e.preventDefault();
-    if (!selectedSub) return;
-    try {
-      setSubmittingReview(true);
-      await adminAPI.review(selectedSub._id, queueDecision, queueComments);
-      setReviewMsg(`Decision "${queueDecision}" logged for ${selectedSub.student?.name || 'Student'}`);
-      setTimeout(() => setReviewMsg(''), 3000);
-      setQueueComments('');
-      await fetchQueue();
-      await fetchDashboard();
-    } catch (err) {
-      setReviewMsg(`Error: ${errMsg(err)}`);
-    } finally {
-      setSubmittingReview(false);
-    }
-  };
-
   const inputClass = "w-full p-2.5 bg-vs-surface-2 border border-vs-border rounded text-xs text-vs-text focus:outline-none focus:border-vs-accent";
 
   return (
@@ -305,7 +265,6 @@ export default function AdminPage() {
         <nav className="space-y-1">
           {NAV_SECTIONS.map(({ id, label, icon: Icon }) => {
             const isBadge = id === 'pending' && dashStats?.pendingCourses > 0;
-            const isBadge2 = id === 'queue' && dashStats?.pendingReviewQueue > 0;
             return (
               <button
                 key={id}
@@ -318,7 +277,7 @@ export default function AdminPage() {
               >
                 <Icon className="w-4 h-4 shrink-0" />
                 <span className="truncate">{label}</span>
-                {(isBadge || isBadge2) && (
+                {isBadge && (
                   <span className="ml-auto w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
                 )}
               </button>
@@ -370,7 +329,6 @@ export default function AdminPage() {
                 if (activeSection === 'pending') fetchPending();
                 if (activeSection === 'students') fetchStudents();
                 if (activeSection === 'teachers') fetchTeachers();
-                if (activeSection === 'queue') fetchQueue();
                 if (activeSection === 'feedback') fetchFeedback();
               }}
               className="p-2 rounded text-vs-muted hover:text-vs-accent hover:bg-vs-accent-light transition-colors"
@@ -418,14 +376,6 @@ export default function AdminPage() {
                       onClick={() => setActiveSection('pending')}
                     />
                     <StatCard label="Total Enrollments" value={dashStats?.totalEnrollments} icon={Award} color="text-pink-500" />
-                    <StatCard
-                      label="Flagged for Review"
-                      value={dashStats?.pendingReviewQueue}
-                      icon={ShieldAlert}
-                      color="text-red-500"
-                      badge={dashStats?.pendingReviewQueue}
-                      onClick={() => setActiveSection('queue')}
-                    />
                     <StatCard label="Feedback Submitted" value={dashStats?.totalFeedback} icon={MessageSquare} color="text-teal-500"
                       onClick={() => setActiveSection('feedback')} />
                     <StatCard label="Avg Interview Rating" value={dashStats?.avgRating ? `${dashStats.avgRating} / 5` : '—'} icon={Star} color="text-amber-400" />
@@ -434,10 +384,10 @@ export default function AdminPage() {
               </div>
 
               {/* Quick Action Cards */}
-              <div>
-                <h2 className="text-sm font-bold text-vs-muted uppercase tracking-wider mb-4">Quick Actions</h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {dashStats?.pendingCourses > 0 && (
+              {dashStats?.pendingCourses > 0 && (
+                <div>
+                  <h2 className="text-sm font-bold text-vs-muted uppercase tracking-wider mb-4">Quick Actions</h2>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="p-5 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-xl flex items-center justify-between cursor-pointer hover:shadow-md transition-shadow"
                       onClick={() => setActiveSection('pending')}>
                       <div>
@@ -448,21 +398,9 @@ export default function AdminPage() {
                       </div>
                       <ChevronRight className="w-5 h-5 text-amber-500" />
                     </div>
-                  )}
-                  {dashStats?.pendingReviewQueue > 0 && (
-                    <div className="p-5 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 rounded-xl flex items-center justify-between cursor-pointer hover:shadow-md transition-shadow"
-                      onClick={() => setActiveSection('queue')}>
-                      <div>
-                        <p className="text-xs font-bold text-red-700 dark:text-red-300 uppercase tracking-wider">AI Flagged</p>
-                        <p className="text-sm font-bold text-red-800 dark:text-red-200 mt-1">
-                          {dashStats.pendingReviewQueue} Submission{dashStats.pendingReviewQueue !== 1 ? 's' : ''} Need Review
-                        </p>
-                      </div>
-                      <ChevronRight className="w-5 h-5 text-red-500" />
-                    </div>
-                  )}
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           )}
 
@@ -481,13 +419,24 @@ export default function AdminPage() {
                 pendingCourses.map(pc => {
                   const videoUrl = pc.videos?.[0]?.url || '';
                   return (
-                    <div key={pc._id} className="p-6 bg-vs-surface border border-amber-300/40 dark:border-amber-700/40 rounded-xl space-y-4">
+                    <div key={pc._id} className={`p-6 bg-vs-surface border rounded-xl space-y-4 ${
+                      pc.isUpdate
+                        ? 'border-indigo-400/60 dark:border-indigo-600/60 shadow-xs'
+                        : 'border-amber-300/40 dark:border-amber-700/40'
+                    }`}>
                       <div className="flex flex-col sm:flex-row justify-between gap-3 border-b border-vs-border pb-4">
                         <div>
-                          <div className="flex items-center gap-2 mb-1">
-                            <span className="px-2.5 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-900/60 dark:text-amber-200">
-                              PENDING APPROVAL
-                            </span>
+                          <div className="flex items-center gap-2 mb-1 flex-wrap">
+                            {pc.isUpdate ? (
+                              <span className="px-2.5 py-0.5 rounded text-[10px] font-bold bg-indigo-100 text-indigo-800 dark:bg-indigo-950/80 dark:text-indigo-300 border border-indigo-300 dark:border-indigo-700 flex items-center gap-1">
+                                <RefreshCw className="w-3 h-3 text-indigo-500 animate-spin-slow" />
+                                EXISTING COURSE UPDATE REVISION
+                              </span>
+                            ) : (
+                              <span className="px-2.5 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-900/60 dark:text-amber-200">
+                                NEW COURSE PROPOSAL
+                              </span>
+                            )}
                             <span className="text-xs text-vs-accent font-semibold">{pc.category}</span>
                           </div>
                           <h3 className="text-lg font-bold text-vs-text">{pc.title}</h3>
@@ -713,135 +662,7 @@ export default function AdminPage() {
             </div>
           )}
 
-          {/* ══════════════════ GLOBAL REVIEW QUEUE ══════════════════ */}
-          {activeSection === 'queue' && (
-            <div>
-              {loadingQueue ? (
-                <p className="text-sm text-vs-muted py-8 text-center">Loading global queue...</p>
-              ) : queue.length === 0 ? (
-                <div className="text-center py-16 bg-vs-surface border border-vs-border rounded-xl">
-                  <CheckCircle2 className="w-12 h-12 text-emerald-500 mx-auto mb-3" />
-                  <h3 className="text-base font-bold text-vs-text">Global Queue is Clear!</h3>
-                  <p className="text-sm text-vs-muted mt-1">No AI-flagged submissions require admin review.</p>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                  {/* Submissions List */}
-                  <div className="space-y-3 lg:col-span-1">
-                    <h4 className="text-xs font-bold text-vs-muted uppercase tracking-wider">
-                      Flagged Submissions ({queue.length})
-                    </h4>
-                    <div className="space-y-2 max-h-[600px] overflow-y-auto pr-1">
-                      {queue.map(sub => (
-                        <div key={sub._id} onClick={() => setSelectedSub(sub)}
-                          className={`p-4 rounded border cursor-pointer transition-all ${
-                            selectedSub?._id === sub._id
-                              ? 'bg-amber-50 dark:bg-amber-950/40 border-amber-500'
-                              : 'bg-vs-surface hover:bg-vs-surface-2 border-vs-border'
-                          }`}>
-                          <div className="flex items-center justify-between mb-1">
-                            <span className="font-bold text-xs text-vs-text truncate">{sub.student?.name || 'Student'}</span>
-                            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-700 dark:bg-amber-900/60 dark:text-amber-300">
-                              FLAGGED
-                            </span>
-                          </div>
-                          <p className="text-[10px] text-vs-muted font-mono truncate">{sub.student?.email}</p>
-                          <p className="text-[11px] text-vs-accent mt-1 truncate">{sub.course?.title}</p>
-                          <div className="flex items-center justify-between mt-1.5 text-[10px] text-vs-muted">
-                            <span>Paste events: <strong className="text-amber-600">{sub.pasteEvents}</strong></span>
-                            <span>Score: <strong>{sub.aiScore || 0}/100</strong></span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
 
-                  {/* Submission Detail + Decision */}
-                  {selectedSub && (
-                    <div className="lg:col-span-2">
-                      <div className="p-6 bg-vs-surface border border-vs-border rounded-xl space-y-5 text-xs">
-                        <div className="flex items-start justify-between border-b border-vs-border pb-4">
-                          <div>
-                            <h3 className="text-base font-bold text-vs-text">{selectedSub.student?.name}</h3>
-                            <p className="text-vs-muted font-mono text-[11px]">{selectedSub.student?.email}</p>
-                            <p className="text-vs-accent text-[11px] mt-0.5">{selectedSub.course?.title} · {selectedSub.course?.skill}</p>
-                          </div>
-                          <div className="text-right">
-                            <span className="text-[10px] text-vs-muted block">AI Score</span>
-                            <strong className="text-amber-600 text-xl font-bold">{selectedSub.aiScore || 0}/100</strong>
-                          </div>
-                        </div>
-
-                        {selectedSub.flagReason && (
-                          <div className="p-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded text-amber-800 dark:text-amber-300">
-                            <span className="font-bold flex items-center gap-1 mb-0.5">
-                              <AlertTriangle className="w-3.5 h-3.5" /> AI Flag Reason
-                            </span>
-                            {selectedSub.flagReason}
-                          </div>
-                        )}
-
-                        <div>
-                          <span className="font-bold text-vs-text flex items-center gap-1 mb-1">
-                            <FileCode2 className="w-3.5 h-3.5 text-vs-accent" /> Submitted Code
-                          </span>
-                          <pre className="p-3 bg-vs-surface-2 border border-vs-border rounded font-mono overflow-x-auto max-h-32">
-                            {selectedSub.code || selectedSub.text || '(No code)'}
-                          </pre>
-                        </div>
-
-                        {selectedSub.interview?.questions?.length > 0 && (
-                          <div>
-                            <span className="font-bold text-vs-text block mb-2">AI Viva Transcript</span>
-                            <div className="space-y-2 max-h-40 overflow-y-auto pr-1">
-                              {selectedSub.interview.questions.map((q, idx) => {
-                                const ans = selectedSub.interview.answers?.[idx];
-                                return (
-                                  <div key={idx} className="p-3 bg-vs-surface-2 border border-vs-border rounded space-y-1">
-                                    <p className="font-semibold text-vs-text">Q{idx + 1}: {q.question}</p>
-                                    <p className="text-vs-muted italic">"{ans?.answer || 'No answer'}"</p>
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          </div>
-                        )}
-
-                        <form onSubmit={handleQueueReview} className="pt-4 border-t border-vs-border space-y-4">
-                          <h4 className="font-bold text-vs-text text-sm">Admin Review Decision</h4>
-                          <div className="grid grid-cols-3 gap-2">
-                            {['APPROVE', 'REQUEST_REVISION', 'REJECT'].map(d => (
-                              <button type="button" key={d} onClick={() => setQueueDecision(d)}
-                                className={`p-2.5 rounded font-bold text-center border text-xs transition-all ${
-                                  queueDecision === d
-                                    ? d === 'APPROVE' ? 'bg-emerald-500 text-white border-emerald-600'
-                                      : d === 'REQUEST_REVISION' ? 'bg-amber-500 text-white border-amber-600'
-                                      : 'bg-red-500 text-white border-red-600'
-                                    : 'bg-vs-surface-2 border-vs-border text-vs-muted hover:text-vs-text'
-                                }`}>
-                                {d === 'APPROVE' ? 'Approve' : d === 'REQUEST_REVISION' ? 'Revise' : 'Reject'}
-                              </button>
-                            ))}
-                          </div>
-                          <textarea rows={2} value={queueComments} onChange={e => setQueueComments(e.target.value)}
-                            placeholder="Admin notes for student..." className={inputClass} />
-                          {reviewMsg && (
-                            <p className={`p-2 rounded text-xs ${reviewMsg.startsWith('Error') ? 'bg-red-50 text-red-600' : 'bg-emerald-50 text-emerald-600'}`}>
-                              {reviewMsg}
-                            </p>
-                          )}
-                          <button type="submit" disabled={submittingReview}
-                            className="w-full py-2.5 bg-vs-accent hover:bg-vs-accent-hover text-white font-bold rounded text-xs transition-all">
-                            {submittingReview ? 'Submitting...' : 'Submit Admin Verdict'}
-                          </button>
-                        </form>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          )}
 
           {/* ══════════════════ FEEDBACK OVERVIEW ══════════════════ */}
           {activeSection === 'feedback' && (

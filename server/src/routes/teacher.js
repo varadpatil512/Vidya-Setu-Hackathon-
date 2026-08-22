@@ -40,21 +40,21 @@ router.post('/courses', async (req, res) => {
     }
 
     // Build video list: if generic videoUrl is provided, wrap into 1 video object
-    const finalVideoUrl = String(videoUrl || videos?.[0]?.url || 'https://youtu.be/6qwOQe2BiYY').trim();
-    const finalVideos = [
+    const finalVideoUrl = String(videoUrl || videos?.[0]?.url || '').trim();
+    const finalVideos = finalVideoUrl ? [
       {
         title: `${title} - Core Lecture`,
         url: finalVideoUrl,
         durationSec: 90,
       }
-    ];
+    ] : [];
 
     const course = await Course.create({
       title: title.trim(),
       description: description.trim(),
       category: category || 'Development',
       price: typeof price === 'number' ? price : 499,
-      thumbnail: thumbnail || 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=600&auto=format&fit=crop&q=60',
+      thumbnail: thumbnail || '',
       instructor: instructor || req.user.name || 'Faculty Member',
       skill: skill.trim(),
       videos: finalVideos,
@@ -71,10 +71,93 @@ router.post('/courses', async (req, res) => {
       createdBy: req.user._id,
       assignedTeacher: req.user._id,
       status: 'pending', // Starts as pending for Admin review
+      isUpdate: false,
       rejectionReason: '',
     });
 
     res.status(201).json(course);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// PUT /api/teacher/courses/:id - Update an existing course (resets status to 'pending' for Admin re-approval)
+router.put('/courses/:id', async (req, res) => {
+  try {
+    const course = await Course.findById(req.params.id);
+    if (!course) return res.status(404).json({ message: 'Course not found' });
+
+    // Check ownership or admin role
+    const isOwner = course.createdBy?.toString() === req.user._id.toString() ||
+                    course.assignedTeacher?.toString() === req.user._id.toString() ||
+                    req.user.role === 'ADMIN';
+
+    if (!isOwner) {
+      return res.status(403).json({ message: 'Not authorized to edit this course' });
+    }
+
+    const { title, description, category, price, skill, instructor, thumbnail, videoUrl, videos, assignment } = req.body || {};
+
+    if (title) course.title = title.trim();
+    if (description) course.description = description.trim();
+    if (category) course.category = category;
+    if (typeof price === 'number') course.price = price;
+    if (skill) course.skill = skill.trim();
+    if (instructor) course.instructor = instructor.trim();
+    if (thumbnail !== undefined) course.thumbnail = thumbnail;
+
+    if (videoUrl !== undefined || videos) {
+      const finalVideoUrl = String(videoUrl || videos?.[0]?.url || '').trim();
+      course.videos = finalVideoUrl ? [
+        {
+          title: `${course.title} - Core Lecture`,
+          url: finalVideoUrl,
+          durationSec: 90,
+        }
+      ] : [];
+    }
+
+    if (assignment) {
+      course.assignment = {
+        title: assignment.title || course.assignment?.title || 'Capstone Project',
+        prompt: assignment.prompt || course.assignment?.prompt || 'Complete assignment requirements',
+        type: assignment.type || course.assignment?.type || 'code',
+        language: assignment.language || course.assignment?.language || 'javascript',
+        starterCode: assignment.starterCode !== undefined ? assignment.starterCode : (course.assignment?.starterCode || ''),
+        rubric: assignment.rubric !== undefined ? assignment.rubric : (course.assignment?.rubric || ''),
+        testCases: assignment.testCases || course.assignment?.testCases || [],
+        questionCount: assignment.questionCount || course.assignment?.questionCount || 2,
+      };
+    }
+
+    // Require admin re-approval on course update
+    course.status = 'pending';
+    course.isUpdate = true;
+    course.rejectionReason = '';
+
+    await course.save();
+    res.json(course);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// DELETE /api/teacher/courses/:id - Delete a course
+router.delete('/courses/:id', async (req, res) => {
+  try {
+    const course = await Course.findById(req.params.id);
+    if (!course) return res.status(404).json({ message: 'Course not found' });
+
+    const isOwner = course.createdBy?.toString() === req.user._id.toString() ||
+                    course.assignedTeacher?.toString() === req.user._id.toString() ||
+                    req.user.role === 'ADMIN';
+
+    if (!isOwner) {
+      return res.status(403).json({ message: 'Not authorized to delete this course' });
+    }
+
+    await Course.findByIdAndDelete(req.params.id);
+    res.json({ message: 'Course deleted successfully' });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

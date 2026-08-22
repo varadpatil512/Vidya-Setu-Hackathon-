@@ -62,7 +62,7 @@ router.patch('/admin/:id/approve', auth, requireRole('ADMIN'), async (req, res) 
   try {
     const course = await Course.findByIdAndUpdate(
       req.params.id,
-      { status: 'approved', rejectionReason: '' },
+      { status: 'approved', isUpdate: false, rejectionReason: '' },
       { new: true }
     );
     if (!course) return res.status(404).json({ message: 'Course not found' });

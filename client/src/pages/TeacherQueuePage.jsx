@@ -15,6 +15,10 @@ import {
   X,
   Clock,
   RefreshCw,
+  Edit3,
+  Trash2,
+  Upload,
+  Image as ImageIcon,
 } from 'lucide-react';
 
 export default function TeacherQueuePage() {
@@ -41,8 +45,14 @@ export default function TeacherQueuePage() {
   const [feedbackList, setFeedbackList] = useState([]);
   const [loadingFeedback, setLoadingFeedback] = useState(false);
 
-  // Teacher Create Course Modal State
+  // Teacher Create/Edit Course Modal State
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editingCourseId, setEditingCourseId] = useState(null);
+  const [thumbnailInputMode, setThumbnailInputMode] = useState('file'); // 'file' | 'url'
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deletingCourse, setDeletingCourse] = useState(false);
+
   const [categories, setCategories] = useState(['Web Development', 'Programming', 'Data & Databases', 'Development']);
   const [createForm, setCreateForm] = useState({
     title: '',
@@ -51,8 +61,8 @@ export default function TeacherQueuePage() {
     price: 499,
     skill: '',
     instructor: '',
-    videoUrl: 'https://youtu.be/6qwOQe2BiYY',
-    thumbnail: 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=600&auto=format&fit=crop&q=60',
+    videoUrl: '',
+    thumbnail: '',
     assignment: {
       title: 'Capstone Project Challenge',
       prompt: 'Implement a working solution that satisfies the assignment prompt.',
@@ -153,6 +163,8 @@ export default function TeacherQueuePage() {
   };
 
   const handleOpenCreateModal = () => {
+    setIsEditMode(false);
+    setEditingCourseId(null);
     setCreateForm({
       title: '',
       description: '',
@@ -160,8 +172,8 @@ export default function TeacherQueuePage() {
       price: 499,
       skill: '',
       instructor: user?.name || 'Faculty Member',
-      videoUrl: 'https://youtu.be/6qwOQe2BiYY',
-      thumbnail: 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=600&auto=format&fit=crop&q=60',
+      videoUrl: '',
+      thumbnail: '',
       assignment: {
         title: 'Capstone Project Challenge',
         prompt: 'Implement a working solution that satisfies the assignment prompt.',
@@ -173,23 +185,88 @@ export default function TeacherQueuePage() {
     setShowCreateModal(true);
   };
 
+  const handleOpenEditModal = () => {
+    if (!selectedCourse) return;
+    setIsEditMode(true);
+    setEditingCourseId(selectedCourse._id);
+    setCreateForm({
+      title: selectedCourse.title || '',
+      description: selectedCourse.description || '',
+      category: selectedCourse.category || 'Web Development',
+      price: selectedCourse.price || 499,
+      skill: selectedCourse.skill || '',
+      instructor: selectedCourse.instructor || user?.name || 'Faculty Member',
+      videoUrl: selectedCourse.videos?.[0]?.url || '',
+      thumbnail: selectedCourse.thumbnail || '',
+      assignment: {
+        title: selectedCourse.assignment?.title || 'Capstone Project Challenge',
+        prompt: selectedCourse.assignment?.prompt || '',
+        starterCode: selectedCourse.assignment?.starterCode || '',
+        rubric: selectedCourse.assignment?.rubric || '',
+      },
+    });
+    setCreateError('');
+    setShowCreateModal(true);
+  };
+
+  const handleThumbnailFileChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      setCreateError('Thumbnail image must be smaller than 5MB');
+      return;
+    }
+    setCreateError('');
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setCreateForm((prev) => ({ ...prev, thumbnail: reader.result }));
+    };
+    reader.readAsDataURL(file);
+  };
+
   const handleCreateCourseSubmit = async (e) => {
     e.preventDefault();
     setCreateError('');
     try {
       setCreatingCourse(true);
-      const res = await teacherAPI.createCourse(createForm);
+      let res;
+      if (isEditMode && editingCourseId) {
+        res = await teacherAPI.updateCourse(editingCourseId, createForm);
+        setSuccessMsg(`Course updated! Status changed to Pending Admin Approval`);
+      } else {
+        res = await teacherAPI.createCourse(createForm);
+        setSuccessMsg(`Course proposal submitted! Status: Pending Admin Approval`);
+      }
       setShowCreateModal(false);
-      setSuccessMsg(`Course proposal submitted! Status: Pending Admin Approval`);
-      setTimeout(() => setSuccessMsg(''), 4000);
-      
-      const newCourse = res.data;
+      setTimeout(() => setSuccessMsg(''), 5000);
+
+      const savedCourse = res.data;
       await fetchMyCourses();
-      setSelectedCourse(newCourse);
+      setSelectedCourse(savedCourse);
     } catch (err) {
       setCreateError(errMsg(err));
     } finally {
       setCreatingCourse(false);
+    }
+  };
+
+  const handleDeleteCourse = async () => {
+    if (!selectedCourse) return;
+    try {
+      setDeletingCourse(true);
+      await teacherAPI.deleteCourse(selectedCourse._id);
+      setShowDeleteConfirm(false);
+      setSuccessMsg(`Course "${selectedCourse.title}" deleted successfully.`);
+      setTimeout(() => setSuccessMsg(''), 4000);
+
+      const res = await teacherAPI.getMyCourses();
+      const updatedList = res.data || [];
+      setCourses(updatedList);
+      setSelectedCourse(updatedList.length > 0 ? updatedList[0] : null);
+    } catch (err) {
+      setError(errMsg(err));
+    } finally {
+      setDeletingCourse(false);
     }
   };
 
@@ -289,29 +366,40 @@ export default function TeacherQueuePage() {
                     <div
                       key={course._id}
                       onClick={() => setSelectedCourse(course)}
-                      className={`p-4 rounded border text-left cursor-pointer transition-all ${
+                      className={`p-3.5 rounded border text-left cursor-pointer transition-all ${
                         isSelected
                           ? 'bg-vs-accent-light border-vs-accent text-vs-text shadow-sm'
                           : 'bg-vs-surface hover:bg-vs-surface-2 border-vs-border text-vs-text'
                       }`}
                     >
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="text-[10px] font-semibold text-vs-accent uppercase tracking-wider">
-                          {course.category}
-                        </span>
-                        {/* Status Badge */}
-                        <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                          cStatus === 'approved'
-                            ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 border border-emerald-200 dark:border-emerald-800'
-                            : cStatus === 'pending'
-                            ? 'bg-amber-50 dark:bg-amber-950/40 text-amber-600 border border-amber-200 dark:border-amber-800'
-                            : 'bg-red-50 dark:bg-red-950/40 text-red-600 border border-red-200 dark:border-red-800'
-                        }`}>
-                          {cStatus === 'approved' ? 'Approved' : cStatus === 'pending' ? 'Pending Approval' : 'Rejected'}
-                        </span>
+                      <div className="flex gap-3 items-start">
+                        {course.thumbnail && (
+                          <img
+                            src={course.thumbnail}
+                            alt={course.title}
+                            className="w-12 h-12 rounded object-cover border border-vs-border shrink-0 mt-0.5"
+                          />
+                        )}
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center justify-between mb-1 gap-1">
+                            <span className="text-[10px] font-semibold text-vs-accent uppercase tracking-wider truncate">
+                              {course.category}
+                            </span>
+                            {/* Status Badge */}
+                            <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold shrink-0 ${
+                              cStatus === 'approved'
+                                ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 border border-emerald-200 dark:border-emerald-800'
+                                : course.isUpdate
+                                ? 'bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800'
+                                : 'bg-amber-50 dark:bg-amber-950/40 text-amber-600 border border-amber-200 dark:border-amber-800'
+                            }`}>
+                              {cStatus === 'approved' ? 'Approved' : course.isUpdate ? 'Update Pending' : 'Pending'}
+                            </span>
+                          </div>
+                          <h4 className="text-xs font-bold text-vs-text truncate">{course.title}</h4>
+                          <p className="text-[11px] text-vs-muted mt-0.5 truncate">{course.skill}</p>
+                        </div>
                       </div>
-                      <h4 className="text-sm font-bold text-vs-text truncate">{course.title}</h4>
-                      <p className="text-xs text-vs-muted mt-1 truncate">{course.skill}</p>
                     </div>
                   );
                 })}
@@ -324,33 +412,69 @@ export default function TeacherQueuePage() {
 
                 {/* Course Header & Rejection Warning */}
                 <div className="bg-vs-surface border border-vs-border rounded-lg p-6 space-y-4">
-                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-                    <div>
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="text-xs font-bold text-vs-accent bg-vs-accent-light px-2.5 py-1 rounded">
-                          {selectedCourse.skill}
-                        </span>
-                        {/* Big Status Badge */}
-                        <span className={`px-2.5 py-1 rounded text-xs font-bold ${
-                          selectedCourse.status === 'approved'
-                            ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 border border-emerald-200 dark:border-emerald-800'
-                            : selectedCourse.status === 'pending'
-                            ? 'bg-amber-50 dark:bg-amber-950/40 text-amber-600 border border-amber-200 dark:border-amber-800'
-                            : 'bg-red-50 dark:bg-red-950/40 text-red-600 border border-red-200 dark:border-red-800'
-                        }`}>
-                          {selectedCourse.status === 'approved' ? '🟢 Live & Approved' : selectedCourse.status === 'pending' ? '🟡 Pending Admin Approval' : '🔴 Proposal Rejected'}
-                        </span>
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <div className="flex items-start gap-4 flex-1 min-w-0">
+                      {selectedCourse.thumbnail && (
+                        <img
+                          src={selectedCourse.thumbnail}
+                          alt={selectedCourse.title}
+                          className="w-28 h-20 rounded-lg object-cover border border-vs-border shrink-0 shadow-xs"
+                        />
+                      )}
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-wrap items-center gap-2 mb-1">
+                          <span className="text-xs font-bold text-vs-accent bg-vs-accent-light px-2.5 py-1 rounded">
+                            {selectedCourse.skill}
+                          </span>
+                          {/* Big Status Badge */}
+                          <span className={`px-2.5 py-1 rounded text-xs font-bold ${
+                            selectedCourse.status === 'approved'
+                              ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 border border-emerald-200 dark:border-emerald-800'
+                              : selectedCourse.isUpdate
+                              ? 'bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800'
+                              : selectedCourse.status === 'pending'
+                              ? 'bg-amber-50 dark:bg-amber-950/40 text-amber-600 border border-amber-200 dark:border-amber-800'
+                              : 'bg-red-50 dark:bg-red-950/40 text-red-600 border border-red-200 dark:border-red-800'
+                          }`}>
+                            {selectedCourse.status === 'approved'
+                              ? '🟢 Live & Approved'
+                              : selectedCourse.isUpdate
+                              ? '🔵 Existing Course Update — Pending Admin Re-Approval'
+                              : selectedCourse.status === 'pending'
+                              ? '🟡 Pending Admin Approval'
+                              : '🔴 Proposal Rejected'}
+                          </span>
+                        </div>
+                        <h2 className="text-xl font-bold text-vs-text mt-1">{selectedCourse.title}</h2>
                       </div>
-                      <h2 className="text-xl font-bold text-vs-text mt-1">{selectedCourse.title}</h2>
                     </div>
 
-                    <button
-                      onClick={() => fetchWorkspaceData(selectedCourse._id)}
-                      className="px-3 py-1.5 bg-vs-surface-2 border border-vs-border hover:bg-vs-border text-vs-text text-xs font-semibold rounded transition-colors flex items-center gap-1.5"
-                    >
-                      <RefreshCw className="w-3.5 h-3.5" />
-                      Refresh Course Data
-                    </button>
+                    <div className="flex items-center gap-2 flex-wrap shrink-0">
+                      <button
+                        onClick={() => fetchWorkspaceData(selectedCourse._id)}
+                        className="px-3 py-1.5 bg-vs-surface-2 border border-vs-border hover:bg-vs-border text-vs-text text-xs font-semibold rounded transition-colors flex items-center gap-1.5"
+                        title="Refresh Course Data"
+                      >
+                        <RefreshCw className="w-3.5 h-3.5" />
+                        Refresh
+                      </button>
+                      <button
+                        onClick={handleOpenEditModal}
+                        className="px-3 py-1.5 bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800 text-indigo-600 dark:text-indigo-300 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 text-xs font-semibold rounded transition-colors flex items-center gap-1.5"
+                        title="Edit Course"
+                      >
+                        <Edit3 className="w-3.5 h-3.5" />
+                        Edit Course
+                      </button>
+                      <button
+                        onClick={() => setShowDeleteConfirm(true)}
+                        className="px-3 py-1.5 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-rose-600 dark:text-rose-300 hover:bg-rose-100 dark:hover:bg-rose-900/60 text-xs font-semibold rounded transition-colors flex items-center gap-1.5"
+                        title="Delete Course"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                        Delete Course
+                      </button>
+                    </div>
                   </div>
 
                   {/* Rejection Alert Box */}
@@ -781,14 +905,20 @@ export default function TeacherQueuePage() {
 
       </div>
 
-      {/* TEACHER CREATE NEW COURSE MODAL */}
+      {/* TEACHER CREATE / EDIT COURSE MODAL */}
       {showCreateModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-fade-in">
           <div className="relative w-full max-w-xl bg-vs-surface border border-vs-border rounded-lg shadow-xl overflow-hidden text-vs-text max-h-[90vh] flex flex-col">
             <div className="px-6 py-4 border-b border-vs-border flex items-center justify-between">
               <div>
-                <h3 className="text-base font-bold text-vs-text">Submit New Course Proposal</h3>
-                <p className="text-xs text-vs-muted">Course will be submitted for Admin approval before going live.</p>
+                <h3 className="text-base font-bold text-vs-text">
+                  {isEditMode ? 'Edit Course Proposal' : 'Submit New Course Proposal'}
+                </h3>
+                <p className="text-xs text-vs-muted">
+                  {isEditMode
+                    ? 'Updating a course requires Admin re-approval before changes reflect to students.'
+                    : 'Course will be submitted for Admin approval before going live.'}
+                </p>
               </div>
               <button onClick={() => setShowCreateModal(false)} className="p-1 rounded text-vs-muted hover:text-vs-text">
                 <X className="w-4 h-4" />
@@ -873,12 +1003,83 @@ export default function TeacherQueuePage() {
                 <label className="block font-semibold mb-1">Lecture Video URL (YouTube Link)</label>
                 <input
                   type="url"
-                  required
                   value={createForm.videoUrl}
                   onChange={(e) => setCreateForm({ ...createForm, videoUrl: e.target.value })}
                   className={inputClass}
-                  placeholder="https://youtu.be/6qwOQe2BiYY or https://www.youtube.com/watch?v=..."
+                  placeholder="https://youtu.be/... or https://www.youtube.com/watch?v=..."
                 />
+              </div>
+
+              {/* Course Thumbnail Selector (Upload or Link) */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="block font-semibold">Course Thumbnail Image</label>
+                  <div className="flex items-center gap-1 bg-vs-surface-2 p-0.5 rounded border border-vs-border text-[11px]">
+                    <button
+                      type="button"
+                      onClick={() => setThumbnailInputMode('file')}
+                      className={`px-2 py-0.5 rounded font-medium transition-colors flex items-center gap-1 ${
+                        thumbnailInputMode === 'file'
+                          ? 'bg-vs-accent text-white font-bold'
+                          : 'text-vs-muted hover:text-vs-text'
+                      }`}
+                    >
+                      <Upload className="w-3 h-3" /> Upload File
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setThumbnailInputMode('url')}
+                      className={`px-2 py-0.5 rounded font-medium transition-colors flex items-center gap-1 ${
+                        thumbnailInputMode === 'url'
+                          ? 'bg-vs-accent text-white font-bold'
+                          : 'text-vs-muted hover:text-vs-text'
+                      }`}
+                    >
+                      <ImageIcon className="w-3 h-3" /> Image URL
+                    </button>
+                  </div>
+                </div>
+
+                {thumbnailInputMode === 'file' ? (
+                  <div>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleThumbnailFileChange}
+                      className="w-full text-xs text-vs-muted file:mr-3 file:py-2 file:px-3 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-vs-accent-light file:text-vs-accent hover:file:bg-vs-accent/20 cursor-pointer"
+                    />
+                    <p className="text-[10px] text-vs-subtle mt-1">PNG, JPG, WebP up to 5MB</p>
+                  </div>
+                ) : (
+                  <input
+                    type="url"
+                    value={createForm.thumbnail}
+                    onChange={(e) => setCreateForm({ ...createForm, thumbnail: e.target.value })}
+                    className={inputClass}
+                    placeholder="https://images.unsplash.com/photo-..."
+                  />
+                )}
+
+                {createForm.thumbnail && (
+                  <div className="mt-2 flex items-center justify-between p-2.5 bg-vs-surface-2 border border-vs-border rounded">
+                    <div className="flex items-center gap-3">
+                      <img
+                        src={createForm.thumbnail}
+                        alt="Thumbnail Preview"
+                        className="w-16 h-10 object-cover rounded border border-vs-border"
+                        onError={(e) => { e.target.style.display = 'none'; }}
+                      />
+                      <span className="text-[11px] text-vs-muted font-medium">Selected Thumbnail Preview</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setCreateForm({ ...createForm, thumbnail: '' })}
+                      className="text-[11px] text-rose-500 hover:underline font-semibold"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                )}
               </div>
 
               {/* Assignment Details */}
@@ -954,9 +1155,49 @@ export default function TeacherQueuePage() {
                 disabled={creatingCourse}
                 className="w-full py-2.5 bg-vs-accent hover:bg-vs-accent-hover text-white font-bold rounded text-xs transition-all btn-scale shadow-sm"
               >
-                {creatingCourse ? 'Submitting Course Proposal...' : 'Submit Course Proposal for Admin Approval'}
+                {creatingCourse
+                  ? 'Saving Course...'
+                  : isEditMode
+                  ? 'Save Updates & Request Admin Re-Approval'
+                  : 'Submit Course Proposal for Admin Approval'}
               </button>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* DELETE COURSE CONFIRMATION MODAL */}
+      {showDeleteConfirm && selectedCourse && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-fade-in">
+          <div className="relative w-full max-w-md bg-vs-surface border border-vs-border rounded-xl shadow-xl overflow-hidden text-vs-text p-6 space-y-4">
+            <div className="flex items-center gap-3 text-rose-500">
+              <div className="p-2 bg-rose-500/10 rounded-full">
+                <Trash2 className="w-6 h-6" />
+              </div>
+              <h3 className="text-base font-bold text-vs-text">Delete Course Proposal?</h3>
+            </div>
+
+            <p className="text-xs text-vs-muted leading-relaxed">
+              Are you sure you want to delete <strong className="text-vs-text">"{selectedCourse.title}"</strong>? This will permanently remove the course and its configuration.
+            </p>
+
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-vs-border">
+              <button
+                type="button"
+                onClick={() => setShowDeleteConfirm(false)}
+                className="px-4 py-2 bg-vs-surface-2 border border-vs-border hover:bg-vs-border text-vs-text text-xs font-semibold rounded transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={deletingCourse}
+                onClick={handleDeleteCourse}
+                className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded transition-colors"
+              >
+                {deletingCourse ? 'Deleting...' : 'Delete Course'}
+              </button>
+            </div>
           </div>
         </div>
       )}
