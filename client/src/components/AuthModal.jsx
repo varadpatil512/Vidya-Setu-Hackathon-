@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { X, Lock, Mail, User, Shield, Globe } from 'lucide-react';
 import { errMsg } from '../lib/api';
 
 export default function AuthModal({ isOpen, onClose }) {
   const { login, register, googleAuth } = useAuth();
+  const navigate = useNavigate();
   const [isRegister, setIsRegister] = useState(false);
   const [showGooglePrompt, setShowGooglePrompt] = useState(false);
   const [googleEmail, setGoogleEmail] = useState('');
@@ -22,6 +24,15 @@ export default function AuthModal({ isOpen, onClose }) {
     role: 'STUDENT',
   });
 
+  const redirectUserByRole = (userObj) => {
+    if (!userObj) return;
+    if (userObj.role === 'ADMIN') {
+      navigate('/admin');
+    } else if (userObj.role === 'TEACHER') {
+      navigate('/teacher');
+    }
+  };
+
   useEffect(() => {
     if (!isOpen) return;
 
@@ -34,8 +45,9 @@ export default function AuthModal({ isOpen, onClose }) {
               setLoading(true);
               setError('');
               try {
-                await googleAuth({ credential: response.credential });
+                const loggedUser = await googleAuth({ credential: response.credential });
                 onClose();
+                redirectUserByRole(loggedUser);
               } catch (err) {
                 setError(errMsg(err));
               } finally {
@@ -65,12 +77,14 @@ export default function AuthModal({ isOpen, onClose }) {
     setError('');
     setLoading(true);
     try {
+      let loggedUser;
       if (isRegister) {
-        await register(form);
+        loggedUser = await register(form);
       } else {
-        await login(form.email, form.password);
+        loggedUser = await login(form.email, form.password);
       }
       onClose();
+      redirectUserByRole(loggedUser);
     } catch (err) {
       setError(errMsg(err));
     } finally {
@@ -100,8 +114,9 @@ export default function AuthModal({ isOpen, onClose }) {
       const nameClean = googleName.trim() || emailClean.split('@')[0];
       const googleId = `google-user-${Date.now()}`;
       const avatar = `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(emailClean)}`;
-      await googleAuth({ email: emailClean, name: nameClean, googleId, avatar });
+      const loggedUser = await googleAuth({ email: emailClean, name: nameClean, googleId, avatar });
       onClose();
+      redirectUserByRole(loggedUser);
     } catch (err) {
       setError(errMsg(err));
     } finally {

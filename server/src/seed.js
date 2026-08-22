@@ -170,6 +170,7 @@ export async function seedDatabase({ silentIfNotEmpty = false, force = false } =
 
   const coursesWithTeacher = courses.map(c => ({
     ...c,
+    status: 'approved',
     assignedTeacher: teacherUser ? teacherUser._id : null,
   }));
 

@@ -2,7 +2,7 @@ import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import { connectDB } from './config/db.js';
-import authRoutes from './routes/auth.js';
+import authRoutes, { getAdminEmails } from './routes/auth.js';
 import courseRoutes from './routes/courses.js';
 import enrollmentRoutes from './routes/enrollments.js';
 import noteRoutes from './routes/notes.js';
@@ -11,6 +11,7 @@ import interviewRoutes from './routes/interviews.js';
 import teacherRoutes from './routes/teacher.js';
 import portfolioRoutes from './routes/portfolio.js';
 import feedbackRoutes from './routes/feedback.js';
+import adminRoutes from './routes/admin.js';
 import { seedDatabase } from './seed.js';
 
 const app = express();
@@ -28,6 +29,7 @@ app.use('/api/interviews', interviewRoutes);
 app.use('/api/teacher', teacherRoutes);
 app.use('/api/portfolio', portfolioRoutes);
 app.use('/api/feedback', feedbackRoutes);
+app.use('/api/admin', adminRoutes);
 
 app.use((err, req, res, next) => {
   if (err.type === 'entity.parse.failed') {
@@ -41,6 +43,13 @@ const PORT = Number(process.env.PORT || 5000);
 
 connectDB()
   .then(async () => {
+    const adminEmails = getAdminEmails();
+    if (adminEmails.length === 0) {
+      console.warn('[server] WARNING: ADMIN_EMAILS environment variable is empty or missing! No admin accounts configured.');
+    } else {
+      console.log(`[server] Configured ${adminEmails.length} admin account(s): ${adminEmails.join(', ')}`);
+    }
+
     // auto-seed empty in-memory dev databases so the demo always has data
     if (!process.env.MONGO_URI && process.env.MONGO_MEMORY === 'true') {
       await seedDatabase({ silentIfNotEmpty: true });

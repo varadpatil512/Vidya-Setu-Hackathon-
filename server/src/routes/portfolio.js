@@ -41,13 +41,13 @@ async function buildPortfolio(userId) {
   return { user, verifiedSkills: entries };
 }
 
-// Portfolio is student-only (and admin)
-router.get('/mine', auth, requireRole('STUDENT', 'ADMIN'), async (req, res) => {
+// Portfolio is student-only
+router.get('/mine', auth, requireRole('STUDENT'), async (req, res) => {
   const portfolio = await buildPortfolio(req.user._id);
   res.json(portfolio);
 });
 
-router.get('/:userId', auth, requireRole('STUDENT', 'ADMIN'), async (req, res) => {
+router.get('/:userId', auth, requireRole('STUDENT'), async (req, res) => {
   try {
     const portfolio = await buildPortfolio(req.params.userId);
     if (!portfolio) return res.status(404).json({ message: 'User not found' });

@@ -61,7 +61,7 @@ export default function Navbar({ onOpenAuth }) {
 
             {user && (
               <>
-                {user.role !== 'TEACHER' && (
+                {user.role === 'STUDENT' && (
                   <Link
                     to="/portfolio"
                     className={`px-4 py-2 rounded text-sm font-medium transition-colors flex items-center gap-2 ${

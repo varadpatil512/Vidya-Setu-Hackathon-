@@ -4,20 +4,45 @@ import { signToken, auth } from '../middleware/auth.js';
 
 const router = Router();
 
-// Demo platform: role can be chosen at registration. Lock this down for production.
+/**
+ * Helper to get list of authorized admin emails from process.env.ADMIN_EMAILS
+ */
+export function getAdminEmails() {
+  return (process.env.ADMIN_EMAILS || '')
+    .split(',')
+    .map(email => email.trim().toLowerCase())
+    .filter(Boolean);
+}
+
+/**
+ * Determines the role for a given email + requested role:
+ * - If email is in ADMIN_EMAILS environment variable -> always ADMIN
+ * - Otherwise -> requested role must be STUDENT or TEACHER only
+ */
+function resolveRole(email, requestedRole) {
+  const normalEmail = String(email || '').toLowerCase().trim();
+  const adminEmails = getAdminEmails();
+  if (adminEmails.includes(normalEmail)) return 'ADMIN';
+  // Block any self-attempt to claim ADMIN through the API
+  if (requestedRole === 'ADMIN') return 'STUDENT';
+  return ROLES.includes(requestedRole) ? requestedRole : 'STUDENT';
+}
+
 router.post('/register', async (req, res) => {
   try {
     const { name, email, password, role } = req.body || {};
     if (!name || !email || !password) return res.status(400).json({ message: 'Name, email and password are required' });
     if (String(password).length < 6) return res.status(400).json({ message: 'Password must be at least 6 characters' });
-    const safeRole = ROLES.includes(role) ? role : 'STUDENT';
 
-    const exists = await User.findOne({ email: String(email).toLowerCase() });
+    const finalRole = resolveRole(email, role);
+    const normalEmail = String(email).toLowerCase().trim();
+
+    const exists = await User.findOne({ email: normalEmail });
     if (exists) return res.status(409).json({ message: 'An account with this email already exists' });
 
-    const user = await User.create({ name, email, password, role: safeRole, authProvider: 'local' });
-    console.log(`[auth] Registered user saved to MongoDB: ${user.email} (${user.role})`);
-    return res.status(201).json({ token: signToken(user), user: { id: user._id, name, email, role: safeRole } });
+    const user = await User.create({ name, email: normalEmail, password, role: finalRole, authProvider: 'local' });
+    console.log(`[auth] Registered: ${user.email} (${user.role})`);
+    return res.status(201).json({ token: signToken(user), user: { id: user._id, name: user.name, email: user.email, role: finalRole } });
   } catch (err) {
     console.error('[auth] Register error:', err);
     return res.status(500).json({ message: err.message || 'Registration failed' });
@@ -85,17 +110,24 @@ router.post('/google', async (req, res) => {
         user.avatar = googleUser.avatar;
         updated = true;
       }
+      // Auto-promote to ADMIN if email matches env-configured admin list
+      if (getAdminEmails().includes(String(user.email).toLowerCase()) && user.role !== 'ADMIN') {
+        user.role = 'ADMIN';
+        updated = true;
+        console.log(`[auth] Auto-promoted ${user.email} to ADMIN on Google login`);
+      }
       if (updated) await user.save();
     } else {
+      const googleRole = resolveRole(googleUser.email, 'STUDENT');
       user = await User.create({
         name: googleUser.name,
         email: googleUser.email,
         googleId: googleUser.googleId,
         avatar: googleUser.avatar,
         authProvider: 'google',
-        role: 'STUDENT',
+        role: googleRole,
       });
-      console.log(`[auth] Registered Google OAuth user saved to MongoDB: ${user.email}`);
+      console.log(`[auth] Registered Google OAuth user: ${user.email} (${user.role})`);
     }
 
     const token = signToken(user);

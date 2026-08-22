@@ -94,4 +94,14 @@ export const feedbackAPI = {
   getInterviewFeedback: (courseId) => api.get('/feedback/interview', { params: { courseId } }),
 };
 
+export const adminAPI = {
+  getDashboard: () => api.get('/admin/dashboard'),
+  getStudents: () => api.get('/admin/students'),
+  getTeachers: () => api.get('/admin/teachers'),
+  getEnrollments: () => api.get('/admin/enrollments'),
+  getQueue: () => api.get('/admin/queue'),
+  getFeedback: () => api.get('/admin/feedback'),
+  review: (submissionId, decision, comments) => api.post('/teacher/reviews', { submissionId, decision, comments }),
+};
+
 export default api;
