@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation, matchPath } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
 import { useTheme } from './context/useTheme';
 import Navbar from './components/Navbar';
@@ -35,10 +35,17 @@ function ProtectedRoute({ children, roles }) {
   return children;
 }
 
+const FOOTER_PATHS = ['/', '/courses', '/portfolio', '/portfolio/:userId'];
+
 export default function App() {
   const [authModalOpen, setAuthModalOpen] = useState(false);
+  const location = useLocation();
   // Initialize theme on app mount (applies class to <html>)
   useTheme();
+
+  const showFooter = FOOTER_PATHS.some((pattern) =>
+    matchPath({ path: pattern, end: true }, location.pathname)
+  );
 
   return (
     <div className="min-h-screen bg-vs-bg text-vs-text font-sans antialiased flex flex-col justify-between">
@@ -88,7 +95,7 @@ export default function App() {
         </main>
       </div>
 
-      <Footer />
+      {showFooter && <Footer />}
 
       <AuthModal isOpen={authModalOpen} onClose={() => setAuthModalOpen(false)} />
     </div>
