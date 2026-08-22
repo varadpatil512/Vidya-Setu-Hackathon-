@@ -50,7 +50,7 @@ def extract_code_facts(code):
         "lines": len(str(code).split('\n'))
     }
 
-def generate_mock_questions(course, submission):
+def generate_mock_questions(course, submission, language='code'):
     qs = []
     sub_type = submission.get('type', 'code')
     source = str(submission.get('code', '') or submission.get('text', '') or '')
@@ -124,15 +124,15 @@ def generate_mock_questions(course, submission):
             else:
                 qs.append(f"How do the CSS styling rules in your submission establish visual hierarchy for the user?")
         elif facts['loops']:
-            qs.append("You used iteration/loops in your code. What invariant holds true on each loop iteration?")
-        elif facts['usesCond']:
-            qs.append("Describe an edge case input where your conditional branching handles an exception.")
+            qs.append("You used iteration in your code. What invariant holds true on each iteration?")
+        elif facts['usesCond'] and language in ('javascript', 'python', 'js'):
+            qs.append("Describe a specific input where your conditional logic takes the other branch, and why.")
         else:
             qs.append("What alternative implementation or property did you evaluate before finalizing this submission?")
     else:
-        first_sentence = str(source).split('.')[0].strip() if source else "your thesis"
-        qs.append(f"Your submission states: '{first_sentence[:100]}...' — defend this premise with specific examples.")
-        qs.append("What alternative approach did you evaluate and discard during this assignment?")
+        first_sentence = str(source).split('.')[0].strip() if source else "your answer"
+        qs.append(f"Your submission states: '{first_sentence[:100]}' — explain why you chose this specific approach.")
+        qs.append(f"What specific {skill} technique or keyword in your submission was the most important choice, and why?")
     
     return qs[:2]
 
@@ -256,7 +256,7 @@ def call_llm_json(system_prompt, user_prompt):
             return result, "openai"
     return None, None
 
-def generate_llm_questions(course, submission, question_count=2):
+def generate_llm_questions(course, submission, question_count=2, language='code'):
     sub_type = submission.get('type', 'code')
     student_code = str(submission.get('code', '') if sub_type == 'code' else submission.get('text', ''))
 
@@ -264,23 +264,48 @@ def generate_llm_questions(course, submission, question_count=2):
     assignment_description = assignment_info.get('prompt') or assignment_info.get('title') or course.get('description', '') or course.get('title', '')
     skill_tag = course.get('skill') or course.get('title', '')
 
+    is_programming_lang = language in ('javascript', 'python', 'js')
+    if is_programming_lang:
+        lang_constraint = (
+            f"The submission is {language} code. You may ask about logic, functions, conditionals, or loops "
+            f"only if those constructs actually appear in the submitted code."
+        )
+    elif language == 'sql':
+        lang_constraint = (
+            "The submission is SQL. Only ask about SQL syntax, clauses (SELECT, FROM, WHERE, JOIN, GROUP BY), "
+            "table references, column choices, and query logic actually present in the code. "
+            "Do NOT ask about programming concepts such as loops, conditionals, functions, branching, "
+            "edge cases, or exception handling — they are not applicable to SQL submissions."
+        )
+    else:
+        # html, css, or any markup/styling language
+        lang_constraint = (
+            f"The submission is {language}. Only ask about layout, styling, selectors, properties, and "
+            f"structure actually present in the code. "
+            f"Do NOT ask about programming concepts such as loops, conditionals, functions, branching, "
+            f"edge cases, or exception handling — they are not applicable to {language} submissions. "
+            f"For example, do not ask about 'conditional branching' or 'edge cases' for a CSS-only submission."
+        )
+
     system_prompt = (
         "You are an AI examiner reviewing a student submission to generate interview questions. "
         "Return ONLY a JSON object containing a 'questions' key with an array of short question strings, "
-        "e.g. {\"questions\": [\"Question 1\", \"Question 2\"]}. Do not include markdown code block markers or extra text."
+        "e.g. {\"questions\": [\"Question 1\", \"Question 2\"]}. Do not include markdown code block markers or extra text. "
+        + lang_constraint
     )
 
     user_prompt = f"""You are reviewing a student's submission for the assignment:
-'{assignment_description}'. Skill being verified:
-'{skill_tag}'. Here is their submission:
+'{assignment_description}'. Skill being verified: '{skill_tag}'. Language: {language}.
+Here is their submission:
 ---
 {student_code}
 ---
 Generate exactly 2 short interview questions that test whether
 the student understands their own submission — ask about
 specific choices they made (e.g. why a particular selector,
-property, or approach was used), not generic definitions.
-Return ONLY a JSON array of 2 question strings, no other text."""
+property, clause, or approach was used), not generic definitions.
+{lang_constraint}
+Return ONLY a JSON object with a 'questions' key containing an array of 2 question strings."""
 
     # Try Gemini first (free), then OpenAI — both attempt up to 2 times total
     for attempt in range(2):
@@ -298,11 +323,11 @@ Return ONLY a JSON array of 2 question strings, no other text."""
             if len(questions_list) >= 2:
                 return questions_list[:2], f"python-ai-service ({provider})"
             elif len(questions_list) == 1:
-                fallback_qs = generate_mock_questions(course, submission)
+                fallback_qs = generate_mock_questions(course, submission, language=language)
                 return [questions_list[0], fallback_qs[0]], f"python-ai-service ({provider}+fallback)"
 
     # Fallback: rule-based grounded questions
-    fallback_qs = generate_mock_questions(course, submission)
+    fallback_qs = generate_mock_questions(course, submission, language=language)
     return fallback_qs[:2], "python-ai-service (fallback)"
 
 class AIServiceHandler(BaseHTTPRequestHandler):
@@ -343,8 +368,9 @@ class AIServiceHandler(BaseHTTPRequestHandler):
             course = payload.get('course', {})
             submission = payload.get('submission', {})
             question_count = payload.get('questionCount') or 2
+            language = payload.get('language') or (course.get('assignment') or {}).get('language') or 'code'
             
-            questions, generated_by = generate_llm_questions(course, submission, question_count=question_count)
+            questions, generated_by = generate_llm_questions(course, submission, question_count=question_count, language=language)
             self.send_json(200, {
                 "questions": questions,
                 "generatedBy": generated_by

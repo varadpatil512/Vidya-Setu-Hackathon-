@@ -104,4 +104,19 @@ export const adminAPI = {
   review: (submissionId, decision, comments) => api.post('/teacher/reviews', { submissionId, decision, comments }),
 };
 
+export const ttsAPI = {
+  generate: (text) => api.post('/tts', { text }, { timeout: 3500 }),
+};
+
+export const transcribeAPI = {
+  transcribe: (audioBlob) => {
+    const formData = new FormData();
+    formData.append('audio', audioBlob, 'answer.webm');
+    return api.post('/transcribe', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+      timeout: 8000,
+    });
+  },
+};
+
 export default api;

@@ -12,6 +12,8 @@ import teacherRoutes from './routes/teacher.js';
 import portfolioRoutes from './routes/portfolio.js';
 import feedbackRoutes from './routes/feedback.js';
 import adminRoutes from './routes/admin.js';
+import ttsRoutes from './routes/tts.js';
+import transcribeRoutes from './routes/transcribe.js';
 import { seedDatabase } from './seed.js';
 
 const app = express();
@@ -30,6 +32,8 @@ app.use('/api/teacher', teacherRoutes);
 app.use('/api/portfolio', portfolioRoutes);
 app.use('/api/feedback', feedbackRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/tts', ttsRoutes);
+app.use('/api/transcribe', transcribeRoutes);
 
 app.use((err, req, res, next) => {
   if (err.type === 'entity.parse.failed') {

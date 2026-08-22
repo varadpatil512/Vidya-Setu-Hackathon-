@@ -35,10 +35,12 @@ async function callPythonService(endpoint, payload) {
 
 export async function generateQuestions({ course, submission }) {
   // First try the separate Python AI Service per architecture requirement
+  const language = course.assignment?.language || 'code';
   const pyResult = await callPythonService('/api/generate-questions', {
     course,
     submission,
-    questionCount: 2
+    questionCount: 2,
+    language,
   });
   if (pyResult && Array.isArray(pyResult.questions) && pyResult.questions.length) {
     return { questions: pyResult.questions.slice(0, 2), generatedBy: pyResult.generatedBy || 'python-ai-service' };
@@ -49,11 +51,16 @@ export async function generateQuestions({ course, submission }) {
   const assignmentPrompt = course.assignment?.prompt || course.assignment?.title || course.description || '';
   const skillTag = course.skill || course.title || '';
 
+  const isProgrammingLang = ['javascript', 'python'].includes(language);
+  const langConstraint = isProgrammingLang
+    ? `The submission is ${language} code — you may ask about logic, functions, conditionals, or loops only if those constructs actually appear in the submitted code.`
+    : `The submission is ${language} — only ask about ${language === 'sql' ? 'SQL syntax, clauses, table references, and query logic' : 'layout, styling, selectors, properties, and structure'} actually present in the code. Do NOT ask about programming concepts such as loops, conditionals, functions, branching, edge cases, or exception handling — they are not applicable to this submission. For example, do not ask about "conditional branching" or "edge cases" for a CSS-only or SQL-only submission.`;
+
   if (hasKey()) {
     try {
       const out = await llmJson(
-        `You are an AI examiner reviewing a student submission to generate interview questions. Return ONLY a JSON object containing a "questions" key with an array of 2 short question strings.`,
-        `You are reviewing a student's submission for the assignment: '${assignmentPrompt}'. Skill being verified: '${skillTag}'. Here is their submission:\n---\n${String(source).slice(0, 6000)}\n---\nGenerate exactly 2 short interview questions that test whether the student understands their own submission — ask about specific choices they made (e.g. why a particular selector, property, or approach was used), not generic definitions. Return ONLY a JSON array of 2 question strings, no other text.`
+        `You are an AI examiner reviewing a student submission to generate interview questions. Return ONLY a JSON object containing a "questions" key with an array of 2 short question strings. ${langConstraint}`,
+        `You are reviewing a student's submission for the assignment: '${assignmentPrompt}'. Skill being verified: '${skillTag}'. Language: ${language}. Here is their submission:\n---\n${String(source).slice(0, 6000)}\n---\nGenerate exactly 2 short interview questions that test whether the student understands their own submission — ask about specific choices they made (e.g. why a particular selector, property, or query clause was used), not generic definitions. ${langConstraint} Return ONLY a JSON object with a "questions" key containing an array of 2 question strings.`
       );
       if (Array.isArray(out.questions) && out.questions.length) {
         return { questions: out.questions.slice(0, 2), generatedBy: 'openai-direct' };
@@ -193,9 +200,11 @@ function mockQuestions(course, submission) {
       qs.push(`What alternative implementation or property did you evaluate before finalizing this submission?`);
     }
   } else {
-    const firstSentence = String(submission.text).split(/[.!?\n]/).map(s => s.trim()).filter(Boolean)[0] || 'your answer';
-    qs.push(`Your submission opens with: "${firstSentence.slice(0, 120)}..." — defend that claim in your own words.`);
-    qs.push(`What alternative approach did you consider and reject for this assignment, and why?`);
+    // text-type (HTML/CSS/SQL rubric submissions): stay domain-specific, no logic jargon
+    const source2 = String(submission.text || submission.code || '');
+    const firstSentence = source2.split(/[.!?\n]/).map(s => s.trim()).filter(Boolean)[0] || 'your answer';
+    qs.push(`Your submission reads: "${firstSentence.slice(0, 120)}" — explain in your own words why you wrote it this way.`);
+    qs.push(`What specific ${course.skill || 'concept'} technique or keyword in your submission was the most important choice you made, and why?`);
   }
   return qs.slice(0, 2);
 }
