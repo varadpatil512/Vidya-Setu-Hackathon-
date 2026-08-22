@@ -80,4 +80,9 @@ export const portfolioAPI = {
   getByUser: (userId) => api.get(`/portfolio/${userId}`),
 };
 
+export const feedbackAPI = {
+  submitInterviewFeedback: (data) => api.post('/feedback/interview', data),
+  getInterviewFeedback: () => api.get('/feedback/interview'),
+};
+
 export default api;

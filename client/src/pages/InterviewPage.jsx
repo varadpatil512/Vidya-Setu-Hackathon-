@@ -14,6 +14,7 @@ import {
   FileCode2,
   Cpu
 } from 'lucide-react';
+import InterviewFeedbackModal from '../components/InterviewFeedbackModal';
 
 export default function InterviewPage() {
   const { submissionId } = useParams();
@@ -180,9 +181,15 @@ export default function InterviewPage() {
               </div>
             )}
 
+            {/* Post-AI-Interview Feedback Prompt */}
+            <InterviewFeedbackModal
+              submissionId={submissionId}
+              onComplete={() => navigate('/portfolio')}
+            />
+
             <button
               onClick={() => navigate('/portfolio')}
-              className="px-6 py-3 bg-vs-accent hover:bg-vs-accent-hover text-white font-bold text-sm rounded transition-colors btn-scale inline-flex items-center gap-2"
+              className="px-6 py-3 bg-vs-accent hover:bg-vs-accent-hover text-white font-bold text-sm rounded transition-colors btn-scale inline-flex items-center gap-2 mt-4"
             >
               <Award className="w-4 h-4" />
               View Verified Skill Portfolio

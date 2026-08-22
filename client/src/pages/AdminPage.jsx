@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { coursesAPI, errMsg } from '../lib/api';
+import { coursesAPI, feedbackAPI, errMsg } from '../lib/api';
 import {
   LayoutDashboard,
   Plus,
@@ -10,7 +10,9 @@ import {
   CheckCircle2,
   X,
   Zap,
-  ShieldCheck
+  ShieldCheck,
+  MessageSquare,
+  Star
 } from 'lucide-react';
 
 export default function AdminPage() {
@@ -19,6 +21,11 @@ export default function AdminPage() {
   const [selectedCourse, setSelectedCourse] = useState(null);
   const [enrolledStudents, setEnrolledStudents] = useState([]);
   const [loadingStudents, setLoadingStudents] = useState(false);
+
+  // Tab state
+  const [activeTab, setActiveTab] = useState('courses');
+  const [feedbackList, setFeedbackList] = useState([]);
+  const [loadingFeedback, setLoadingFeedback] = useState(false);
 
   // Course Modal state
   const [showModal, setShowModal] = useState(false);
@@ -45,7 +52,20 @@ export default function AdminPage() {
 
   useEffect(() => {
     fetchCourses();
+    fetchFeedback();
   }, []);
+
+  const fetchFeedback = async () => {
+    try {
+      setLoadingFeedback(true);
+      const res = await feedbackAPI.getInterviewFeedback();
+      setFeedbackList(res.data || []);
+    } catch (err) {
+      console.error('Failed to fetch feedback:', err);
+    } finally {
+      setLoadingFeedback(false);
+    }
+  };
 
   const fetchCourses = async () => {
     try {
@@ -172,127 +192,229 @@ export default function AdminPage() {
             </div>
             <h1 className="text-2xl font-bold text-vs-text mt-2">Course & Student Management</h1>
             <p className="text-sm text-vs-muted mt-0.5">
-              Manage courses, view enrolled student rosters, and inspect verification status.
+              Manage courses, view enrolled student rosters, and inspect AI interview feedback.
             </p>
           </div>
 
+          <div className="flex items-center gap-3">
+            <button
+              onClick={handleOpenCreate}
+              className="flex items-center gap-2 px-4 py-2 bg-vs-accent hover:bg-vs-accent-hover text-white text-xs font-semibold rounded transition-colors btn-scale"
+            >
+              <Plus className="w-4 h-4" />
+              Create Course
+            </button>
+          </div>
+        </div>
+
+        {/* Tab Selection */}
+        <div className="max-w-7xl mx-auto mt-6 flex items-center gap-4 border-b border-vs-border/50">
           <button
-            onClick={handleOpenCreate}
-            className="flex items-center gap-2 px-4 py-2 bg-vs-accent hover:bg-vs-accent-hover text-white text-xs font-semibold rounded transition-colors btn-scale"
+            onClick={() => setActiveTab('courses')}
+            className={`pb-3 px-1 text-xs font-bold border-b-2 flex items-center gap-2 transition-colors ${
+              activeTab === 'courses'
+                ? 'border-vs-accent text-vs-accent'
+                : 'border-transparent text-vs-muted hover:text-vs-text'
+            }`}
           >
-            <Plus className="w-4 h-4" />
-            Create Course
+            <BookOpen className="w-4 h-4" />
+            Courses & Roster ({courses.length})
+          </button>
+          <button
+            onClick={() => { setActiveTab('feedback'); fetchFeedback(); }}
+            className={`pb-3 px-1 text-xs font-bold border-b-2 flex items-center gap-2 transition-colors ${
+              activeTab === 'feedback'
+                ? 'border-vs-accent text-vs-accent'
+                : 'border-transparent text-vs-muted hover:text-vs-text'
+            }`}
+          >
+            <MessageSquare className="w-4 h-4" />
+            AI Interview Feedback ({feedbackList.length})
           </button>
         </div>
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {activeTab === 'courses' ? (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Courses List */}
+            <div className="space-y-3">
+              <h3 className="text-xs font-bold text-vs-muted uppercase tracking-wider">
+                Courses ({courses.length})
+              </h3>
 
-          {/* Courses List */}
-          <div className="space-y-3">
-            <h3 className="text-xs font-bold text-vs-muted uppercase tracking-wider">
-              Courses ({courses.length})
-            </h3>
-
-            <div className="space-y-2">
-              {courses.map((course) => {
-                const isSelected = selectedCourse?._id === course._id;
-                return (
-                  <div
-                    key={course._id}
-                    onClick={() => handleSelectCourse(course)}
-                    className={`p-4 rounded border text-left cursor-pointer transition-all ${
-                      isSelected
-                        ? 'bg-vs-accent-light border-vs-accent text-vs-text'
-                        : 'bg-vs-surface hover:bg-vs-surface-2 border-vs-border text-vs-text'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between mb-1">
-                      <h4 className="text-sm font-bold text-vs-text truncate">{course.title}</h4>
-                      <div className="flex items-center gap-1">
-                        <button
-                          onClick={(e) => { e.stopPropagation(); handleOpenEdit(course); }}
-                          className="p-1 rounded text-vs-muted hover:text-vs-accent"
-                          title="Edit"
-                        >
-                          <Edit3 className="w-3.5 h-3.5" />
-                        </button>
-                        <button
-                          onClick={(e) => { e.stopPropagation(); handleDeleteCourse(course._id); }}
-                          className="p-1 rounded text-vs-muted hover:text-red-600"
-                          title="Delete"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </div>
-                    <p className="text-xs text-vs-muted truncate">{course.skill} · ₹{course.price}</p>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Enrolled Roster */}
-          {selectedCourse && (
-            <div className="lg:col-span-2 space-y-6">
-              <div className="p-6 bg-vs-surface border border-vs-border rounded-lg space-y-4">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <span className="text-xs font-semibold text-vs-accent">{selectedCourse.category}</span>
-                    <h2 className="text-xl font-bold text-vs-text mt-0.5">{selectedCourse.title}</h2>
-                    <p className="text-xs text-vs-muted mt-1 font-mono">ID: {selectedCourse._id}</p>
-                  </div>
-                  <div className="text-right">
-                    <span className="text-sm font-bold text-vs-text block">₹{selectedCourse.price}</span>
-                    <span className="text-xs text-vs-muted">By {selectedCourse.instructor}</span>
-                  </div>
-                </div>
-
-                <div className="pt-4 border-t border-vs-border">
-                  <h3 className="text-sm font-bold text-vs-text flex items-center gap-2 mb-3">
-                    <Users className="w-4 h-4 text-vs-accent" />
-                    Enrolled Students ({enrolledStudents.length})
-                  </h3>
-
-                  {loadingStudents ? (
-                    <p className="text-xs text-vs-muted">Loading roster...</p>
-                  ) : enrolledStudents.length === 0 ? (
-                    <p className="text-xs text-vs-muted py-4 text-center">No students currently enrolled in this course.</p>
-                  ) : (
-                    <div className="space-y-2">
-                      {enrolledStudents.map((enrollment) => (
-                        <div
-                          key={enrollment._id}
-                          className="p-3 bg-vs-surface-2 border border-vs-border rounded flex items-center justify-between text-xs"
-                        >
-                          <div>
-                            <span className="font-semibold text-vs-text block">{enrollment.user?.name || 'Student'}</span>
-                            <span className="text-vs-muted font-mono text-[11px]">{enrollment.user?.email}</span>
-                          </div>
-                          <div className="text-right">
-                            <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                              enrollment.status === 'VERIFIED'
-                                ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 border border-emerald-200 dark:border-emerald-800'
-                                : 'bg-amber-50 dark:bg-amber-950/40 text-amber-600 border border-amber-200 dark:border-amber-800'
-                            }`}>
-                              {enrollment.status}
-                            </span>
-                            <span className="block text-[10px] text-vs-muted mt-0.5">
-                              Enrolled: {new Date(enrollment.createdAt).toLocaleDateString()}
-                            </span>
-                          </div>
+              <div className="space-y-2">
+                {courses.map((course) => {
+                  const isSelected = selectedCourse?._id === course._id;
+                  return (
+                    <div
+                      key={course._id}
+                      onClick={() => handleSelectCourse(course)}
+                      className={`p-4 rounded border text-left cursor-pointer transition-all ${
+                        isSelected
+                          ? 'bg-vs-accent-light border-vs-accent text-vs-text'
+                          : 'bg-vs-surface hover:bg-vs-surface-2 border-vs-border text-vs-text'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between mb-1">
+                        <h4 className="text-sm font-bold text-vs-text truncate">{course.title}</h4>
+                        <div className="flex items-center gap-1">
+                          <button
+                            onClick={(e) => { e.stopPropagation(); handleOpenEdit(course); }}
+                            className="p-1 rounded text-vs-muted hover:text-vs-accent"
+                            title="Edit"
+                          >
+                            <Edit3 className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            onClick={(e) => { e.stopPropagation(); handleDeleteCourse(course._id); }}
+                            className="p-1 rounded text-vs-muted hover:text-red-600"
+                            title="Delete"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
                         </div>
-                      ))}
+                      </div>
+                      <p className="text-xs text-vs-muted truncate">{course.skill} · ₹{course.price}</p>
                     </div>
-                  )}
-                </div>
+                  );
+                })}
               </div>
             </div>
-          )}
 
-        </div>
+            {/* Enrolled Roster */}
+            {selectedCourse && (
+              <div className="lg:col-span-2 space-y-6">
+                <div className="p-6 bg-vs-surface border border-vs-border rounded-lg space-y-4">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <span className="text-xs font-semibold text-vs-accent">{selectedCourse.category}</span>
+                      <h2 className="text-xl font-bold text-vs-text mt-0.5">{selectedCourse.title}</h2>
+                      <p className="text-xs text-vs-muted mt-1 font-mono">ID: {selectedCourse._id}</p>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-sm font-bold text-vs-text block">₹{selectedCourse.price}</span>
+                      <span className="text-xs text-vs-muted">By {selectedCourse.instructor}</span>
+                    </div>
+                  </div>
+
+                  <div className="pt-4 border-t border-vs-border">
+                    <h3 className="text-sm font-bold text-vs-text flex items-center gap-2 mb-3">
+                      <Users className="w-4 h-4 text-vs-accent" />
+                      Enrolled Students ({enrolledStudents.length})
+                    </h3>
+
+                    {loadingStudents ? (
+                      <p className="text-xs text-vs-muted">Loading roster...</p>
+                    ) : enrolledStudents.length === 0 ? (
+                      <p className="text-xs text-vs-muted py-4 text-center">No students currently enrolled in this course.</p>
+                    ) : (
+                      <div className="space-y-2">
+                        {enrolledStudents.map((enrollment) => (
+                          <div
+                            key={enrollment._id}
+                            className="p-3 bg-vs-surface-2 border border-vs-border rounded flex items-center justify-between text-xs"
+                          >
+                            <div>
+                              <span className="font-semibold text-vs-text block">{enrollment.user?.name || 'Student'}</span>
+                              <span className="text-vs-muted font-mono text-[11px]">{enrollment.user?.email}</span>
+                            </div>
+                            <div className="text-right">
+                              <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                                enrollment.status === 'VERIFIED'
+                                  ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 border border-emerald-200 dark:border-emerald-800'
+                                  : 'bg-amber-50 dark:bg-amber-950/40 text-amber-600 border border-amber-200 dark:border-amber-800'
+                              }`}>
+                                {enrollment.status}
+                              </span>
+                              <span className="block text-[10px] text-vs-muted mt-0.5">
+                                Enrolled: {new Date(enrollment.createdAt).toLocaleDateString()}
+                              </span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        ) : (
+          /* Student AI Interview Feedback List View */
+          <div className="p-6 bg-vs-surface border border-vs-border rounded-lg space-y-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-lg font-bold text-vs-text">AI Interview Student Feedback</h2>
+                <p className="text-xs text-vs-muted mt-0.5">
+                  Real-time sentiment and pulse feedback from students after completing AI viva defence.
+                </p>
+              </div>
+              <button
+                onClick={fetchFeedback}
+                className="px-3 py-1.5 bg-vs-surface-2 border border-vs-border hover:bg-vs-border text-vs-text text-xs font-medium rounded transition-colors"
+              >
+                Refresh List
+              </button>
+            </div>
+
+            {loadingFeedback ? (
+              <p className="text-xs text-vs-muted py-8 text-center">Loading student feedback...</p>
+            ) : feedbackList.length === 0 ? (
+              <div className="py-12 text-center space-y-2">
+                <MessageSquare className="w-8 h-8 text-vs-muted mx-auto" />
+                <p className="text-sm font-semibold text-vs-text">No interview feedback recorded yet.</p>
+                <p className="text-xs text-vs-muted">Feedback submitted by students after AI interviews will appear here.</p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs border-collapse">
+                  <thead>
+                    <tr className="border-b border-vs-border text-vs-muted uppercase font-bold text-[10px]">
+                      <th className="py-3 px-3">Student</th>
+                      <th className="py-3 px-3">Course</th>
+                      <th className="py-3 px-3">Rating</th>
+                      <th className="py-3 px-3">Tag / Sentiment</th>
+                      <th className="py-3 px-3">Comment</th>
+                      <th className="py-3 px-3 text-right">Date</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-vs-border/60">
+                    {feedbackList.map((fb) => (
+                      <tr key={fb._id} className="hover:bg-vs-surface-2/60 transition-colors">
+                        <td className="py-3 px-3">
+                          <span className="font-semibold text-vs-text block">{fb.student?.name || 'Student'}</span>
+                          <span className="text-vs-muted font-mono text-[10px]">{fb.student?.email}</span>
+                        </td>
+                        <td className="py-3 px-3">
+                          <span className="font-medium text-vs-text block">{fb.submission?.course?.title || 'Course'}</span>
+                          <span className="text-vs-muted text-[10px]">{fb.submission?.course?.skill}</span>
+                        </td>
+                        <td className="py-3 px-3 font-bold">
+                          <div className="flex items-center gap-1 text-amber-500">
+                            <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                            <span>{fb.rating}/5</span>
+                          </div>
+                        </td>
+                        <td className="py-3 px-3">
+                          <span className="px-2.5 py-1 rounded-full text-[10px] font-semibold bg-vs-accent-light text-vs-accent border border-vs-accent/20 inline-block">
+                            {fb.tag || 'General Feedback'}
+                          </span>
+                        </td>
+                        <td className="py-3 px-3 text-vs-muted max-w-xs truncate">
+                          {fb.comment || <span className="italic text-vs-subtle">No comment provided</span>}
+                        </td>
+                        <td className="py-3 px-3 text-right text-vs-muted text-[10px] font-mono">
+                          {new Date(fb.createdAt).toLocaleDateString()}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Modal */}
