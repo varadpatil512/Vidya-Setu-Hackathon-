@@ -754,9 +754,15 @@ export default function ClassroomPage() {
                       >
                         <div>
                           <span className="font-bold">{res.name}</span>
-                          <span className="block text-[11px] opacity-80 mt-0.5">
-                            Expected: {res.expected} | Actual: {res.actual}
-                          </span>
+                          {res.name.startsWith('Test ') ? (
+                            <span className="block text-[11px] opacity-80 mt-0.5">
+                              Expected: {res.expected} | Actual: {res.actual}
+                            </span>
+                          ) : (
+                            <span className="block text-[11px] opacity-80 mt-0.5">
+                              {res.passed ? 'Code submission successful. Move to interview.' : 'Refine your submission and resubmit.'}
+                            </span>
+                          )}
                         </div>
                         <span className="font-bold">{res.passed ? '✓ PASS' : '✗ FAIL'}</span>
                       </div>

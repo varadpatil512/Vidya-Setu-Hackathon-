@@ -71,18 +71,18 @@ export function verifyCode(code, testCases = [], rubric = '') {
     const covered = terms.filter(t => lowerCode.includes(t));
     const rubricPassed = terms.length === 0 || (covered.length / terms.length) >= 0.4;
     results.push({
-      name: 'Rubric & Syntax Verification',
+      name: rubricPassed ? 'Code Completion Successful' : 'Code Review Needed',
       passed: rubricPassed,
-      expected: terms.length ? terms.join(', ') : 'valid syntax',
-      actual: covered.join(', ') || 'code verified',
+      expected: rubricPassed ? 'Move to interview' : 'Refine your submission and resubmit',
+      actual: rubricPassed ? 'Ready for AI Viva' : 'Some key concepts missing',
     });
   } else if (results.length === 0) {
     // Default verification for non-empty code submission
     results.push({
-      name: 'Code Submission Verification',
+      name: 'Code Completion Successful',
       passed: true,
-      expected: 'non-empty code submission',
-      actual: 'valid submission received',
+      expected: 'Move to interview',
+      actual: 'Ready for AI Viva',
     });
   }
 
@@ -104,7 +104,12 @@ export function verifyText(text, rubric = '') {
   return {
     passed,
     results: [
-      { name: 'Rubric term coverage', passed, expected: terms.length ? terms.join(', ') : 'no rubric terms', actual: covered.join(', ') || 'none' },
+      {
+        name: passed ? 'Code Completion Successful' : 'Code Review Needed',
+        passed,
+        expected: passed ? 'Move to interview' : 'Refine your submission and resubmit',
+        actual: passed ? 'Ready for AI Viva' : 'Some key concepts missing',
+      },
     ],
   };
 }
