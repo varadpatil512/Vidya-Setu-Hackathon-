@@ -7,7 +7,7 @@ const interviewSchema = new mongoose.Schema({
   consistencyScore: { type: Number, default: null },
   aiVerdict: { type: String, enum: ['VERIFY', 'FLAG'], default: null },
   aiReasoning: { type: String, default: '' },
-  generatedBy: { type: String, enum: ['openai', 'mock'], default: 'mock' },
+  generatedBy: { type: String, default: 'mock' },
 }, { timestamps: true });
 
 export default mongoose.model('Interview', interviewSchema);

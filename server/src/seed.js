@@ -43,9 +43,9 @@ const courses = [
     assignment: {
       title: 'Styled Heading Challenge',
       prompt: 'Write a heading in HTML and give it a color using CSS. Paste your code as your answer.',
-      type: 'text',
+      type: 'code',
       language: 'html',
-      starterCode: '',
+      starterCode: '<h1>My Title</h1>',
       rubric: 'h1, h2, h3, color, style',
       testCases: [],
       questionCount: 2,
@@ -63,9 +63,9 @@ const courses = [
     assignment: {
       title: 'Even or Odd Checker',
       prompt: 'Take one number and, using if-else, write code that checks whether it is Even or Odd. No function needed — just the plain if-else code. Paste your code as your answer.',
-      type: 'text',
+      type: 'code',
       language: 'python',
-      starterCode: '',
+      starterCode: 'num = 4',
       rubric: 'if, else, %, even, odd',
       testCases: [],
       questionCount: 2,
@@ -88,7 +88,7 @@ const courses = [
       starterCode: '',
       rubric: 'queryselector, onclick, style, background',
       testCases: [],
-      questionCount: 5,
+      questionCount: 2,
     },
   },
   {
@@ -103,12 +103,12 @@ const courses = [
     assignment: {
       title: 'Student Filtering Query',
       prompt: 'Write a SQL query to fetch all records from a students table where age is greater than 18. Paste your query as your answer.',
-      type: 'text',
+      type: 'code',
       language: 'sql',
       starterCode: '',
       rubric: 'select, from, where, age',
       testCases: [],
-      questionCount: 5,
+      questionCount: 2,
     },
   },
   {
@@ -123,12 +123,12 @@ const courses = [
     assignment: {
       title: 'Perfect Centering with Flexbox',
       prompt: 'Write CSS that centers a div both horizontally and vertically using Flexbox. Paste your CSS as your answer.',
-      type: 'text',
+      type: 'code',
       language: 'css',
       starterCode: '',
       rubric: 'display: flex, justify-content, align-items, center',
       testCases: [],
-      questionCount: 5,
+      questionCount: 2,
     },
   },
 ];

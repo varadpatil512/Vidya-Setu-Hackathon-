@@ -10,7 +10,6 @@ try:
     FASTAPI_AVAILABLE = True
 except ImportError:
     FASTAPI_AVAILABLE = False
-    # Mock fallbacks if fastapi/pydantic packages are not installed in the python environment
     class FastAPI:
         def __init__(self, **kwargs): pass
         def add_middleware(self, *args, **kwargs): pass
@@ -25,7 +24,7 @@ except ImportError:
 
 from typing import List, Dict, Any, Optional
 import os
-from main import generate_mock_questions, score_mock_interview, call_openai_json
+from main import generate_mock_questions, generate_llm_questions, score_mock_interview, call_openai_json
 
 if not FASTAPI_AVAILABLE:
     print("[Python AI Service] WARNING: 'fastapi' or 'pydantic' module is not installed in current Python environment.")
@@ -44,7 +43,7 @@ app.add_middleware(
 class QuestionGenRequest(BaseModel):
     course: Dict[str, Any]
     submission: Dict[str, Any]
-    questionCount: Optional[int] = 5
+    questionCount: Optional[int] = 2
 
 class AnswerItem(BaseModel):
     question: str
@@ -67,21 +66,11 @@ def health():
 @app.post("/api/generate-questions")
 def generate_questions(req: QuestionGenRequest):
     try:
-        q_count = req.questionCount or req.course.get('assignment', {}).get('questionCount') or 5
-        ai_res = call_openai_json(
-            f"You are an AI examiner generating {q_count} dynamic viva questions based on a student's submission to verify genuine understanding and authorship. Return JSON: {{\"questions\": [\"...\"]}}",
-            f"Course: {req.course.get('title')}\nSubmission:\n{req.submission.get('code') or req.submission.get('text')}"
-        )
-        if ai_res and isinstance(ai_res.get('questions'), list):
-            return {
-                "questions": ai_res['questions'][:q_count],
-                "generatedBy": "python-ai-service (fastapi + openai)"
-            }
-        
-        qs = generate_mock_questions(req.course, req.submission)
+        q_count = req.questionCount or 2
+        questions, generated_by = generate_llm_questions(req.course, req.submission, question_count=q_count)
         return {
-            "questions": qs[:q_count],
-            "generatedBy": "python-ai-service (fastapi)"
+            "questions": questions,
+            "generatedBy": generated_by
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

@@ -55,7 +55,7 @@ router.post('/', auth, async (req, res) => {
     let verifyResult;
     if (subType === 'code') {
       if (!String(code || '').trim()) return res.status(400).json({ message: 'Code submission is empty' });
-      verifyResult = verifyCode(code, course.assignment.testCases);
+      verifyResult = verifyCode(code, course.assignment.testCases, course.assignment.rubric);
     } else {
       if (!String(text || '').trim()) return res.status(400).json({ message: 'Text submission is empty' });
       verifyResult = verifyText(text, course.assignment.rubric);
@@ -92,6 +92,16 @@ router.post('/', auth, async (req, res) => {
         verifyResult,
         status: verifyResult.passed ? 'CODE_VERIFIED' : 'VERIFICATION_FAILED',
       });
+      // Also wipe old interviews from prior submissions for the same student+course
+      // so fresh questions are always generated for a new attempt
+      const oldSubs = await Submission.find({
+        student: req.user._id,
+        course: course._id,
+        _id: { $ne: submission._id },
+      }).select('_id');
+      if (oldSubs.length) {
+        await Interview.deleteMany({ submission: { $in: oldSubs.map(s => s._id) } });
+      }
     }
     res.status(open ? 200 : 201).json(submission);
   } catch (err) {

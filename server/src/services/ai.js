@@ -38,22 +38,25 @@ export async function generateQuestions({ course, submission }) {
   const pyResult = await callPythonService('/api/generate-questions', {
     course,
     submission,
-    questionCount: course.assignment?.questionCount || 5
+    questionCount: 2
   });
   if (pyResult && Array.isArray(pyResult.questions) && pyResult.questions.length) {
-    return { questions: pyResult.questions, generatedBy: pyResult.generatedBy || 'python-ai-service' };
+    return { questions: pyResult.questions.slice(0, 2), generatedBy: pyResult.generatedBy || 'python-ai-service' };
   }
 
   // Direct OpenAI fallback if key available in Node
   const source = submission.type === 'code' ? submission.code : submission.text;
+  const assignmentPrompt = course.assignment?.prompt || course.assignment?.title || course.description || '';
+  const skillTag = course.skill || course.title || '';
+
   if (hasKey()) {
     try {
       const out = await llmJson(
-        `You are an examiner generating a short viva interview to verify a student truly understands work they submitted. Return JSON: {"questions": ["...", ...]} with exactly ${course.assignment?.questionCount || 5} specific questions grounded in THEIR submission (reference functions, choices, or claims it contains). Never generic trivia.`,
-        `Course: ${course.title} (skill: ${course.skill})\nAssignment: ${course.assignment.title}\nPrompt: ${course.assignment.prompt}\n\nStudent submission:\n${String(source).slice(0, 6000)}`
+        `You are an AI examiner reviewing a student submission to generate interview questions. Return ONLY a JSON object containing a "questions" key with an array of 2 short question strings.`,
+        `You are reviewing a student's submission for the assignment: '${assignmentPrompt}'. Skill being verified: '${skillTag}'. Here is their submission:\n---\n${String(source).slice(0, 6000)}\n---\nGenerate exactly 2 short interview questions that test whether the student understands their own submission — ask about specific choices they made (e.g. why a particular selector, property, or approach was used), not generic definitions. Return ONLY a JSON array of 2 question strings, no other text.`
       );
       if (Array.isArray(out.questions) && out.questions.length) {
-        return { questions: out.questions.slice(0, course.assignment?.questionCount || 5), generatedBy: 'openai-direct' };
+        return { questions: out.questions.slice(0, 2), generatedBy: 'openai-direct' };
       }
     } catch (err) {
       console.warn('[ai] OpenAI question generation failed, using mock:', err.message);
@@ -124,7 +127,8 @@ async function llmJson(system, user) {
   });
   if (!res.ok) throw new Error(`OpenAI API error ${res.status}: ${await res.text()}`);
   const data = await res.json();
-  return JSON.parse(data.choices[0].message.content);
+  const content = data.choices[0].message.content.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
+  return JSON.parse(content);
 }
 
 function clamp01(v) {
@@ -146,27 +150,54 @@ function codeFacts(code) {
 function mockQuestions(course, submission) {
   const qs = [];
   if (submission.type === 'code') {
-    const { names, loops, usesMap, usesCond } = codeFacts(submission.code);
-    if (names.length) {
+    const code = String(submission.code || '');
+    const { names, loops, usesCond } = codeFacts(code);
+
+    const hasId = /#|id\s*=/.test(code);
+    const hasClass = /\.|class\s*=/.test(code);
+    const hasStyle = /style|color|background|font/.test(code);
+
+    if (hasId && hasClass) {
+      const classMatches = [...code.matchAll(/class=["']([^"']+)["']|\.([A-Za-z0-9_-]+)/g)].map(m => m[1] || m[2]);
+      const idMatches = [...code.matchAll(/id=["']([^"']+)["']|#([A-Za-z0-9_-]+)/g)].map(m => m[1] || m[2]);
+      const cName = classMatches[0] || 'class';
+      const iName = idMatches[0] || 'id';
+      qs.push(`Why did you use the \`#${iName}\` ID selector for unique elements while using the \`.${cName}\` class selector for reusable styling in your code?`);
+    } else if (hasClass) {
+      const classMatches = [...code.matchAll(/class=["']([^"']+)["']|\.([A-Za-z0-9_-]+)/g)].map(m => m[1] || m[2]);
+      const cName = classMatches[0] ? `.${classMatches[0]}` : 'class';
+      qs.push(`Why did you choose to define the \`${cName}\` class selector for your styling instead of applying inline styles?`);
+    } else if (hasId) {
+      const idMatches = [...code.matchAll(/id=["']([^"']+)["']|#([A-Za-z0-9_-]+)/g)].map(m => m[1] || m[2]);
+      const iName = idMatches[0] ? `#${idMatches[0]}` : 'ID';
+      qs.push(`Why did you use the \`${iName}\` ID selector here, and in what scenario would a class selector be more appropriate?`);
+    } else if (names.length) {
       qs.push(`Walk me through what your function \`${names[0]}\` does, input to output.`);
-      if (names.length > 1) qs.push(`Why did you split the logic between \`${names[0]}\` and \`${names[1]}\` instead of writing one function?`);
     } else {
-      qs.push(`Explain the overall structure of your solution and why you organised it this way.`);
+      qs.push(`Explain why you selected this specific structural approach for your ${course.skill || 'assignment'} solution.`);
     }
-    if (loops) qs.push(`You used a loop in your solution — what exactly does each iteration do, and what would break if you removed it?`);
-    if (usesMap) qs.push(`Where does \`.map()\` get used in your code, and what would change if you replaced it with \`.forEach()\`?`);
-    if (usesCond) qs.push(`Describe a specific input where your conditional logic takes the other branch, and why.`);
-    qs.push(`If the assignment's test cases changed to handle negative numbers, what would you need to modify in your code and why?`);
+
+    if (hasStyle) {
+      const colorMatches = [...code.matchAll(/(color|background-color|background|font-size)\s*:\s*([^;}\n]+)/g)].map(m => [m[1], m[2]]);
+      if (colorMatches.length) {
+        const [prop, val] = colorMatches[0];
+        qs.push(`Why did you choose \`${val.trim()}\` for the \`${prop.trim()}\` property in your submission?`);
+      } else {
+        qs.push(`How do the CSS styling rules in your submission establish visual hierarchy for the user?`);
+      }
+    } else if (loops) {
+      qs.push(`You used a loop in your solution — what exactly does each iteration do, and what would break if you removed it?`);
+    } else if (usesCond) {
+      qs.push(`Describe a specific input where your conditional logic takes the other branch, and why.`);
+    } else {
+      qs.push(`What alternative implementation or property did you evaluate before finalizing this submission?`);
+    }
   } else {
     const firstSentence = String(submission.text).split(/[.!?\n]/).map(s => s.trim()).filter(Boolean)[0] || 'your answer';
     qs.push(`Your submission opens with: "${firstSentence.slice(0, 120)}..." — defend that claim in your own words.`);
     qs.push(`What alternative approach did you consider and reject for this assignment, and why?`);
-    qs.push(`Which part of the course videos most directly shaped your submission? Be specific.`);
-    qs.push(`If a reviewer challenged the weakest part of your submission, which part would that be and how would you respond?`);
-    qs.push(`How would your answer change if the constraint in the assignment were doubled?`);
   }
-  qs.push(`Finally: in one sentence, what is the single biggest limitation of your own submission?`);
-  return qs.slice(0, course.assignment?.questionCount || 5);
+  return qs.slice(0, 2);
 }
 
 const STOP = new Set(['the', 'a', 'an', 'and', 'or', 'to', 'of', 'in', 'on', 'for', 'is', 'are', 'was', 'it', 'i', 'you', 'my', 'your', 'this', 'that', 'with', 'as', 'at', 'be', 'have', 'has', 'do', 'does', 'would', 'will', 'can', 'could', 'should', 'if', 'then', 'else', 'not', 'but', 'from', 'by', 'so', 'we', 'they', 'me', 'am']);
@@ -199,7 +230,7 @@ function mockScore(course, submission, answers) {
 
   const pastePenalty = Math.min(0.25, (submission.pasteEvents || 0) * 0.1);
   const consistency = clamp01(total - pastePenalty);
-  const questionCount = course.assignment?.questionCount || 5;
+  const questionCount = 2;
   const confidence = clamp01(consistency * 0.9 + (perAnswer.length >= Math.max(1, questionCount - 1) ? 0.05 : 0));
   const verdict = consistency >= 0.45 && confidence >= 0.4 ? 'VERIFY' : 'FLAG';
   const qualityScore = Math.round(consistency * 100);

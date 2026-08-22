@@ -34,8 +34,11 @@ router.post('/start/:submissionId', auth, async (req, res) => {
     }
 
     const existing = await Interview.findOne({ submission: submission._id });
-    if (existing && existing.answers.length) {
-      return res.status(409).json({ message: 'Interview already completed for this submission' });
+    if (existing && existing.questions && existing.questions.length > 0) {
+      if (existing.answers && existing.answers.length > 0) {
+        return res.status(409).json({ message: 'Interview already completed for this submission' });
+      }
+      return res.json(existing);
     }
 
     const { questions, generatedBy } = await generateQuestions({ course: submission.course, submission });
