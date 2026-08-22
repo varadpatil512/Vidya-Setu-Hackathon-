@@ -4,6 +4,7 @@ import Interview from '../models/Interview.js';
 import Enrollment from '../models/Enrollment.js';
 import { auth } from '../middleware/auth.js';
 import { generateQuestions, scoreInterview } from '../services/ai.js';
+import { handleSubmissionApproved } from '../services/notificationService.js';
 
 const router = Router();
 
@@ -74,12 +75,22 @@ router.post('/answers/:submissionId', auth, async (req, res) => {
       return res.status(400).json({ message: `All ${interview.questions.length} questions must be answered` });
     }
 
+    const micIssueReason = String(req.body?.micIssueReason || req.body?.permissionIssueReason || '').trim();
+    const permissionsGranted = typeof req.body?.permissionsGranted === 'boolean' ? req.body.permissionsGranted : (micIssueReason ? false : true);
+    const permissionIssueReason = String(req.body?.permissionIssueReason || micIssueReason).trim();
+
     const result = await scoreInterview({ course: submission.course, submission, answers });
 
     interview.answers = answers;
     interview.consistencyScore = result.consistency;
     interview.aiVerdict = result.verdict;
     interview.aiReasoning = result.reasoning;
+    interview.permissionsGranted = permissionsGranted;
+    if (permissionIssueReason) {
+      interview.permissionIssueReason = permissionIssueReason;
+      interview.micIssueReason = permissionIssueReason;
+      interview.mode = 'TYPED';
+    }
     await interview.save();
 
     submission.aiScore = result.qualityScore;
@@ -91,7 +102,7 @@ router.post('/answers/:submissionId', auth, async (req, res) => {
     if (result.verdict === 'VERIFY') {
       submission.status = 'VERIFIED';
       submission.verifiedAt = new Date();
-      await Enrollment.updateOne({ student: submission.student, course: submission.course }, { status: 'VERIFIED' });
+      await handleSubmissionApproved({ submission });
     } else {
       submission.status = 'FLAGGED';
     }
@@ -117,6 +128,39 @@ router.get('/:submissionId', auth, async (req, res) => {
   if (!submission) return;
   const interview = await Interview.findOne({ submission: submission._id });
   res.json(interview || { questions: [], answers: [] });
+});
+
+// append a proctoring flag event (student only, during their own interview)
+router.post('/proctor-flags/:submissionId', auth, async (req, res) => {
+  try {
+    const submission = await loadOwnSubmission(req, res, req.params.submissionId);
+    if (!submission) return;
+    if (String(submission.student) !== String(req.user._id)) {
+      return res.status(403).json({ message: 'Not allowed' });
+    }
+
+    const { type, timestamp, details } = req.body || {};
+    if (!type) return res.status(400).json({ message: 'Flag type is required' });
+
+    const ALLOWED_TYPES = ['TAB_SWITCH', 'FOCUS_LOSS', 'FULLSCREEN_EXIT', 'NO_FACE', 'MULTIPLE_FACES'];
+    if (!ALLOWED_TYPES.includes(type)) {
+      return res.status(400).json({ message: `Invalid flag type: ${type}` });
+    }
+
+    const flagEntry = { type, timestamp: timestamp ? new Date(timestamp) : new Date(), details: details || '' };
+
+    const interview = await Interview.findOneAndUpdate(
+      { submission: submission._id },
+      { $push: { proctorFlags: flagEntry } },
+      { new: true }
+    );
+
+    if (!interview) return res.status(404).json({ message: 'Interview not found — start the interview first' });
+
+    res.json({ ok: true, totalFlags: interview.proctorFlags.length });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
 });
 
 export default router;

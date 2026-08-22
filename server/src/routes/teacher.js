@@ -5,6 +5,7 @@ import TeacherReview from '../models/TeacherReview.js';
 import Enrollment from '../models/Enrollment.js';
 import Course from '../models/Course.js';
 import { auth, requireRole } from '../middleware/auth.js';
+import { handleSubmissionApproved, handleSubmissionRejected } from '../services/notificationService.js';
 
 const router = Router();
 
@@ -181,11 +182,13 @@ router.post('/reviews', async (req, res) => {
     if (decision === 'APPROVE') {
       submission.status = 'VERIFIED';
       submission.verifiedAt = new Date();
-      await Enrollment.updateOne({ student: submission.student, course: submission.course }, { status: 'VERIFIED' });
+      await handleSubmissionApproved({ submission });
     } else if (decision === 'REJECT') {
       submission.status = 'REJECTED';
+      await handleSubmissionRejected({ submission, comments });
     } else {
       submission.status = 'REVISION_REQUESTED';
+      await handleSubmissionRejected({ submission, comments });
     }
     await submission.save();
     res.json(submission);

@@ -11,7 +11,7 @@ const BASE_URL = process.env.OPENAI_BASE_URL || 'https://api.openai.com/v1';
 const MODEL = process.env.OPENAI_MODEL || 'gpt-4o-mini';
 
 export function hasKey() {
-  return Boolean(process.env.OPENAI_API_KEY);
+  return Boolean(process.env.GROQ_API_KEY || process.env.OPENAI_API_KEY);
 }
 
 // Helper for calling Python AI Service via internal HTTP call
@@ -63,10 +63,11 @@ export async function generateQuestions({ course, submission }) {
         `You are reviewing a student's submission for the assignment: '${assignmentPrompt}'. Skill being verified: '${skillTag}'. Language: ${language}. Here is their submission:\n---\n${String(source).slice(0, 6000)}\n---\nGenerate exactly 2 short interview questions that test whether the student understands their own submission — ask about specific choices they made (e.g. why a particular selector, property, or query clause was used), not generic definitions. ${langConstraint} Return ONLY a JSON object with a "questions" key containing an array of 2 question strings.`
       );
       if (Array.isArray(out.questions) && out.questions.length) {
-        return { questions: out.questions.slice(0, 2), generatedBy: 'openai-direct' };
+        const provider = process.env.GROQ_API_KEY ? 'groq-qwen3.6-27b' : 'openai-direct';
+        return { questions: out.questions.slice(0, 2), generatedBy: provider };
       }
     } catch (err) {
-      console.warn('[ai] OpenAI question generation failed, using mock:', err.message);
+      console.warn('[ai] LLM question generation failed, using mock:', err.message);
     }
   }
 
@@ -98,6 +99,7 @@ export async function scoreInterview({ course, submission, answers }) {
         'You are verifying authorship and understanding. The student submitted work, then answered a viva interview about it. Score how consistent their answers are with the submission and whether they demonstrate genuine understanding. Return JSON: {"consistency": 0-1 number, "confidence": 0-1 number, "verdict": "VERIFY" or "FLAG", "qualityScore": 0-100, "reasoning": "1-3 sentences", "feedback": "2-3 sentences of constructive feedback for the student"}. Be suspicious of vague or generic answers that could apply to anyone\'s work.',
         `Course: ${course.title}\nAssignment prompt: ${course.assignment.prompt}\n\nSubmission:\n${String(source).slice(0, 6000)}\n\nInterview Q&A:\n${answers.map((qa, i) => `Q${i + 1}: ${qa.question}\nA${i + 1}: ${qa.answer}`).join('\n\n')}\n\nPaste-detection events during coding: ${submission.pasteEvents || 0}`
       );
+      const provider = process.env.GROQ_API_KEY ? 'groq-qwen3.6-27b' : 'openai-direct';
       return {
         consistency: clamp01(out.consistency),
         confidence: clamp01(out.confidence),
@@ -105,10 +107,10 @@ export async function scoreInterview({ course, submission, answers }) {
         qualityScore: Math.round(clamp01(out.qualityScore / 100) * 100),
         reasoning: String(out.reasoning || ''),
         feedback: String(out.feedback || ''),
-        scoredBy: 'openai-direct',
+        scoredBy: provider,
       };
     } catch (err) {
-      console.warn('[ai] Direct OpenAI scoring failed:', err.message);
+      console.warn('[ai] LLM scoring failed:', err.message);
     }
   }
 
@@ -116,25 +118,39 @@ export async function scoreInterview({ course, submission, answers }) {
 }
 
 async function llmJson(system, user) {
-  const res = await fetch(`${BASE_URL}/chat/completions`, {
+  let endpoint = `${BASE_URL}/chat/completions`;
+  let key = process.env.OPENAI_API_KEY;
+  let model = MODEL;
+
+  if (process.env.GROQ_API_KEY) {
+    endpoint = 'https://api.groq.com/openai/v1/chat/completions';
+    key = process.env.GROQ_API_KEY;
+    model = 'qwen/qwen3.6-27b';
+  }
+
+  const body = {
+    model,
+    temperature: 0.3,
+    response_format: { type: 'json_object' },
+    messages: [
+      { role: 'system', content: system + '\nReturn ONLY a valid JSON object.' },
+      { role: 'user', content: user },
+    ],
+  };
+
+  const res = await fetch(endpoint, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+      Authorization: `Bearer ${key}`,
     },
-    body: JSON.stringify({
-      model: MODEL,
-      temperature: 0.3,
-      response_format: { type: 'json_object' },
-      messages: [
-        { role: 'system', content: system },
-        { role: 'user', content: user },
-      ],
-    }),
+    body: JSON.stringify(body),
   });
-  if (!res.ok) throw new Error(`OpenAI API error ${res.status}: ${await res.text()}`);
+  if (!res.ok) throw new Error(`LLM API error ${res.status}: ${await res.text()}`);
   const data = await res.json();
-  const content = data.choices[0].message.content.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
+  const raw = data.choices[0].message.content || '';
+  const match = raw.match(/\{[\s\S]*\}/);
+  const content = match ? match[0] : raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
   return JSON.parse(content);
 }
 

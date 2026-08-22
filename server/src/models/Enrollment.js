@@ -8,9 +8,10 @@ const enrollmentSchema = new mongoose.Schema({
   videoWatched: { type: [Boolean], default: [] },
   status: {
     type: String,
-    enum: ['ACTIVE', 'COMPLETED', 'VERIFIED'],
+    enum: ['ACTIVE', 'COMPLETED', 'VERIFIED', 'in_progress', 'completed'],
     default: 'ACTIVE',
   },
+  completedAt: { type: Date, default: null },
 }, { timestamps: true });
 
 enrollmentSchema.index({ student: 1, course: 1 }, { unique: true });

@@ -331,6 +331,7 @@ export default function ClassroomPage() {
   const allVideosWatched = enrollment.videoWatched && enrollment.videoWatched.every(Boolean);
   const videosCount = course.videos?.length || 5;
   const currentVideo = course.videos?.[currentVideoIdx] || { title: `Module ${currentVideoIdx + 1}`, duration: '12:00', url: '' };
+  const isCompleted = enrollment.status === 'completed' || enrollment.status === 'VERIFIED' || !!enrollment.completedAt;
 
   const isWatched = !!enrollment.videoWatched?.[currentVideoIdx];
 
@@ -345,6 +346,12 @@ export default function ClassroomPage() {
               {course.skill}
             </span>
             <h1 className="text-xl font-bold text-vs-text">{course.title}</h1>
+            {isCompleted && (
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-[11px] font-bold">
+                <CheckCircle2 className="w-3.5 h-3.5" />
+                Course Complete
+              </span>
+            )}
           </div>
           <p className="text-xs text-vs-muted mt-1">Instructor: {course.instructor}</p>
         </div>

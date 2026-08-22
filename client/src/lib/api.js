@@ -72,8 +72,17 @@ export const submissionsAPI = {
 
 export const interviewsAPI = {
   start: (submissionId) => api.post(`/interviews/start/${submissionId}`),
-  submitAnswers: (submissionId, answers) => api.post(`/interviews/answers/${submissionId}`, { answers }),
+  submitAnswers: (submissionId, answers, micIssueReason, extraData = {}) =>
+    api.post(`/interviews/answers/${submissionId}`, { answers, micIssueReason, ...extraData }),
   getTranscript: (submissionId) => api.get(`/interviews/${submissionId}`),
+  logProctoringFlag: (submissionId, flag) => api.post(`/interviews/proctor-flags/${submissionId}`, flag),
+};
+
+export const notificationsAPI = {
+  getAll: () => api.get('/notifications'),
+  getUnreadCount: () => api.get('/notifications/unread-count'),
+  markAsRead: (id) => api.patch(`/notifications/${id}/read`),
+  markAllAsRead: () => api.patch('/notifications/read-all'),
 };
 
 export const teacherAPI = {

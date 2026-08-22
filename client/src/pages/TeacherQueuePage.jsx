@@ -456,6 +456,14 @@ export default function TeacherQueuePage() {
                                     <span>Paste events: <strong className="text-amber-600">{sub.pasteEvents}</strong></span>
                                     <span>Score: <strong>{sub.aiScore || 0}/100</strong></span>
                                   </div>
+                                  {/* Proctor flag summary badge */}
+                                  {sub.interview?.proctorFlags?.length > 0 && (
+                                    <div className="mt-1.5 flex items-center gap-1 text-[10px] font-semibold text-rose-400">
+                                      <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-rose-950/60 border border-rose-800">
+                                        🛡 {sub.interview.proctorFlags.length} proctor flag{sub.interview.proctorFlags.length !== 1 ? 's' : ''}
+                                      </span>
+                                    </div>
+                                  )}
                                 </div>
                               );
                             })}
@@ -497,7 +505,32 @@ export default function TeacherQueuePage() {
 
                               {selectedSub.interview?.questions?.length > 0 && (
                                 <div className="space-y-2">
-                                  <span className="font-bold text-vs-text block">AI Viva Responses</span>
+                                  <div className="flex items-center justify-between">
+                                    <span className="font-bold text-vs-text block">AI Viva Responses</span>
+                                    {selectedSub.interview?.mode === 'TYPED' && (
+                                      <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-950/60 border border-amber-800 text-amber-300">
+                                        TYPED MODE
+                                      </span>
+                                    )}
+                                  </div>
+                                  {selectedSub.interview?.permissionsGranted === false && (
+                                    <div className="p-2.5 bg-amber-950/30 border border-amber-800/60 rounded text-amber-300 space-y-0.5">
+                                      <span className="font-bold text-[11px] text-amber-400 block">
+                                        ⚠️ Hardware Permissions Denied by Student:
+                                      </span>
+                                      <p className="text-[11px] italic">
+                                        "{selectedSub.interview?.permissionIssueReason || selectedSub.interview?.micIssueReason}"
+                                      </p>
+                                    </div>
+                                  )}
+                                  {selectedSub.interview?.permissionsGranted !== false && selectedSub.interview?.micIssueReason && (
+                                    <div className="p-2.5 bg-amber-950/30 border border-amber-800/60 rounded text-amber-300 space-y-0.5">
+                                      <span className="font-bold text-[11px] text-amber-400 block">
+                                        🎙 Student Hardware / Mic Issue Explanation:
+                                      </span>
+                                      <p className="text-[11px] italic">"{selectedSub.interview.micIssueReason}"</p>
+                                    </div>
+                                  )}
                                   <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
                                     {selectedSub.interview.questions.map((q, idx) => {
                                       const ansObj = (selectedSub.interview.answers || []).find(a => a.question === q.question) || selectedSub.interview.answers?.[idx];
@@ -509,6 +542,40 @@ export default function TeacherQueuePage() {
                                       );
                                     })}
                                   </div>
+                                </div>
+                              )}
+
+                              {/* Proctor Flags Log */}
+                              {selectedSub.interview?.proctorFlags?.length > 0 ? (
+                                <div className="space-y-2">
+                                  <span className="font-bold text-vs-text block flex items-center gap-1.5">
+                                    🛡 AI Proctoring Signals
+                                    <span className="px-1.5 py-0.5 rounded-full bg-rose-950/60 border border-rose-800 text-rose-400 text-[10px] font-bold">
+                                      {selectedSub.interview.proctorFlags.length} event{selectedSub.interview.proctorFlags.length !== 1 ? 's' : ''}
+                                    </span>
+                                  </span>
+                                  <div className="space-y-1 max-h-40 overflow-y-auto pr-1">
+                                    {selectedSub.interview.proctorFlags.map((f, i) => {
+                                      const colorMap = {
+                                        TAB_SWITCH: 'text-rose-400 bg-rose-950/40 border-rose-800',
+                                        FOCUS_LOSS: 'text-amber-400 bg-amber-950/40 border-amber-800',
+                                        FULLSCREEN_EXIT: 'text-amber-400 bg-amber-950/40 border-amber-800',
+                                        NO_FACE: 'text-rose-400 bg-rose-950/40 border-rose-800',
+                                        MULTIPLE_FACES: 'text-rose-400 bg-rose-950/40 border-rose-800',
+                                      };
+                                      const cls = colorMap[f.type] || 'text-vs-muted bg-vs-surface-2 border-vs-border';
+                                      return (
+                                        <div key={i} className={`flex items-center justify-between p-2 rounded border text-[10px] font-mono ${cls}`}>
+                                          <span className="font-bold uppercase tracking-wide">{f.type.replace(/_/g, ' ')}</span>
+                                          <span className="opacity-70">{new Date(f.timestamp).toLocaleTimeString()}</span>
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                </div>
+                              ) : (
+                                <div className="text-[11px] text-vs-muted italic flex items-center gap-1.5">
+                                  <span>🛡</span> No proctoring flags recorded for this session.
                                 </div>
                               )}
 

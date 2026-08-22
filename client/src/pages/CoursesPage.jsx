@@ -256,10 +256,16 @@ export default function CoursesPage({ onOpenAuth }) {
                             </span>
                           </div>
                           {isEnrolled && (
-                            <div className="absolute top-3 right-3">
-                              <span className="px-2.5 py-1 rounded bg-emerald-500 text-white text-[11px] font-bold shadow-xs flex items-center gap-1">
-                                <CheckCircle2 className="w-3 h-3" /> ENROLLED
-                              </span>
+                            <div className="absolute top-3 right-3 flex flex-col items-end gap-1">
+                              {(enrollment.status === 'completed' || enrollment.status === 'VERIFIED' || enrollment.completedAt) ? (
+                                <span className="px-2.5 py-1 rounded bg-emerald-500 text-white text-[11px] font-bold shadow-xs flex items-center gap-1">
+                                  <CheckCircle2 className="w-3.5 h-3.5" /> COURSE COMPLETE
+                                </span>
+                              ) : (
+                                <span className="px-2.5 py-1 rounded bg-indigo-500 text-white text-[11px] font-bold shadow-xs flex items-center gap-1">
+                                  <CheckCircle2 className="w-3 h-3" /> ENROLLED
+                                </span>
+                              )}
                             </div>
                           )}
                         </div>
@@ -305,10 +311,16 @@ export default function CoursesPage({ onOpenAuth }) {
                         ) : isEnrolled ? (
                           <button
                             onClick={() => navigate(`/course/${course._id}`)}
-                            className="w-full py-2.5 rounded border-2 border-emerald-500 text-emerald-600 dark:text-emerald-400 text-xs font-bold hover:bg-emerald-50 dark:hover:bg-emerald-950/30 transition-colors flex items-center justify-center gap-2"
+                            className={`w-full py-2.5 rounded border-2 text-xs font-bold transition-colors flex items-center justify-center gap-2 ${
+                              (enrollment.status === 'completed' || enrollment.status === 'VERIFIED' || enrollment.completedAt)
+                                ? 'border-emerald-500 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20'
+                                : 'border-emerald-500 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/30'
+                            }`}
                           >
                             <Play className="w-3.5 h-3.5 fill-current" />
-                            {enrollment.status === 'VERIFIED' ? 'Verified Skill · View Course' : 'Continue Learning'}
+                            {(enrollment.status === 'completed' || enrollment.status === 'VERIFIED' || enrollment.completedAt)
+                              ? 'Course Completed · View Details'
+                              : 'Continue Learning'}
                           </button>
                         ) : (
                           <button
