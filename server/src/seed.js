@@ -43,7 +43,7 @@ const courses = [
     assignment: {
       title: 'Styled Heading Challenge',
       prompt: 'Write a heading in HTML and give it a color using CSS. Paste your code as your answer.',
-      type: 'code',
+      type: 'text',
       language: 'html',
       starterCode: '',
       rubric: 'h1, h2, h3, color, style',
@@ -63,7 +63,7 @@ const courses = [
     assignment: {
       title: 'Even or Odd Checker',
       prompt: 'Take one number and, using if-else, write code that checks whether it is Even or Odd. No function needed — just the plain if-else code. Paste your code as your answer.',
-      type: 'code',
+      type: 'text',
       language: 'python',
       starterCode: '',
       rubric: 'if, else, %, even, odd',
@@ -103,7 +103,7 @@ const courses = [
     assignment: {
       title: 'Student Filtering Query',
       prompt: 'Write a SQL query to fetch all records from a students table where age is greater than 18. Paste your query as your answer.',
-      type: 'code',
+      type: 'text',
       language: 'sql',
       starterCode: '',
       rubric: 'select, from, where, age',
@@ -123,7 +123,7 @@ const courses = [
     assignment: {
       title: 'Perfect Centering with Flexbox',
       prompt: 'Write CSS that centers a div both horizontally and vertically using Flexbox. Paste your CSS as your answer.',
-      type: 'code',
+      type: 'text',
       language: 'css',
       starterCode: '',
       rubric: 'display: flex, justify-content, align-items, center',

@@ -297,7 +297,7 @@ export default function ClassroomPage() {
         courseId,
         type: course.assignment.type,
         code: course.assignment.type === 'code' ? codeContent : '',
-        text: course.assignment.type === 'text' ? textContent : '',
+        text: course.assignment.type === 'text' ? codeContent : '',
         snapshots,
       };
       const res = await submissionsAPI.submit(payload);
