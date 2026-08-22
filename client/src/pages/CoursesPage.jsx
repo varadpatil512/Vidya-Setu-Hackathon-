@@ -57,6 +57,10 @@ export default function CoursesPage({ onOpenAuth }) {
 
   const handleEnrollClick = (course) => {
     if (!user) { onOpenAuth(); return; }
+    if (user.role === 'TEACHER') {
+      navigate(`/course/${course._id}`);
+      return;
+    }
     setSelectedCourse(course);
     setShowCheckout(true);
   };
@@ -197,7 +201,15 @@ export default function CoursesPage({ onOpenAuth }) {
                   </div>
 
                   <div>
-                    {enrolledMap[featuredCourse._id] ? (
+                    {user?.role === 'TEACHER' ? (
+                      <button
+                        onClick={() => navigate(`/course/${featuredCourse._id}`)}
+                        className="w-full py-3 rounded bg-vs-surface-2 border border-vs-border hover:bg-vs-border text-vs-text font-bold text-xs transition-all flex items-center justify-center gap-2"
+                      >
+                        <BookOpen className="w-4 h-4 text-vs-accent" />
+                        Preview Course Content
+                      </button>
+                    ) : enrolledMap[featuredCourse._id] ? (
                       <button
                         onClick={() => navigate(`/course/${featuredCourse._id}`)}
                         className="w-full py-3 rounded border-2 border-emerald-500 text-emerald-600 dark:text-emerald-400 font-bold text-xs hover:bg-emerald-50 dark:hover:bg-emerald-950/30 transition-colors flex items-center justify-center gap-2"
@@ -282,7 +294,15 @@ export default function CoursesPage({ onOpenAuth }) {
                       </div>
 
                       <div className="px-5 pb-5 pt-2">
-                        {isEnrolled ? (
+                        {user?.role === 'TEACHER' ? (
+                          <button
+                            onClick={() => navigate(`/course/${course._id}`)}
+                            className="w-full py-2.5 rounded bg-vs-surface-2 border border-vs-border hover:bg-vs-border text-vs-text text-xs font-bold transition-all flex items-center justify-center gap-2"
+                          >
+                            <BookOpen className="w-3.5 h-3.5 text-vs-accent" />
+                            Preview Course Content
+                          </button>
+                        ) : isEnrolled ? (
                           <button
                             onClick={() => navigate(`/course/${course._id}`)}
                             className="w-full py-2.5 rounded border-2 border-emerald-500 text-emerald-600 dark:text-emerald-400 text-xs font-bold hover:bg-emerald-50 dark:hover:bg-emerald-950/30 transition-colors flex items-center justify-center gap-2"

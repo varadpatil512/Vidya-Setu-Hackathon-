@@ -2,16 +2,19 @@ import { Router } from 'express';
 import Enrollment from '../models/Enrollment.js';
 import Course from '../models/Course.js';
 
-import { auth } from '../middleware/auth.js';
+import { auth, requireRole } from '../middleware/auth.js';
 
 const router = Router();
 
-// mock checkout — simulates payment success and enrolls the student
-router.post('/checkout', auth, async (req, res) => {
+// mock checkout — simulates payment success and enrolls the student (Student only)
+router.post('/checkout', auth, requireRole('STUDENT'), async (req, res) => {
   try {
     const { courseId } = req.body || {};
     const course = await Course.findById(courseId);
     if (!course) return res.status(404).json({ message: 'Course not found' });
+    if (course.status !== 'approved') {
+      return res.status(400).json({ message: 'This course is pending approval and cannot be purchased' });
+    }
 
     const existing = await Enrollment.findOne({ student: req.user._id, course: courseId });
     if (existing) return res.status(409).json({ message: 'Already enrolled in this course', enrollment: existing });

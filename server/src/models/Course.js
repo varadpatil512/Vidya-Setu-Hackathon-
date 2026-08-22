@@ -36,6 +36,10 @@ const courseSchema = new mongoose.Schema({
   skill: { type: String, required: true }, // the verified skill tag, e.g. "JavaScript Fundamentals"
   videos: { type: [videoSchema], default: [] },
   assignment: { type: assignmentSchema, required: true },
+  assignedTeacher: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
+  createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
+  status: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'approved', index: true },
+  rejectionReason: { type: String, default: '' },
 }, { timestamps: true });
 
 courseSchema.statics.videoCount = () => Number(String(process.env.COURSE_VIDEO_COUNT || 5).trim());

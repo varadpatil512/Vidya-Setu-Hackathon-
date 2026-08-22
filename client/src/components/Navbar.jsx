@@ -61,17 +61,19 @@ export default function Navbar({ onOpenAuth }) {
 
             {user && (
               <>
-                <Link
-                  to="/portfolio"
-                  className={`px-4 py-2 rounded text-sm font-medium transition-colors flex items-center gap-2 ${
-                    isActive('/portfolio')
-                      ? 'text-vs-accent bg-vs-accent-light'
-                      : 'text-vs-muted hover:text-vs-text hover:bg-vs-surface-2'
-                  }`}
-                >
-                  <Award className="w-4 h-4" />
-                  My Portfolio
-                </Link>
+                {user.role !== 'TEACHER' && (
+                  <Link
+                    to="/portfolio"
+                    className={`px-4 py-2 rounded text-sm font-medium transition-colors flex items-center gap-2 ${
+                      isActive('/portfolio')
+                        ? 'text-vs-accent bg-vs-accent-light'
+                        : 'text-vs-muted hover:text-vs-text hover:bg-vs-surface-2'
+                    }`}
+                  >
+                    <Award className="w-4 h-4" />
+                    My Portfolio
+                  </Link>
+                )}
 
                 {(user.role === 'TEACHER' || user.role === 'ADMIN') && (
                   <Link
@@ -82,8 +84,8 @@ export default function Navbar({ onOpenAuth }) {
                         : 'text-vs-muted hover:text-vs-text hover:bg-vs-surface-2'
                     }`}
                   >
-                    <ShieldAlert className="w-4 h-4" />
-                    Review Queue
+                    <GraduationCap className="w-4 h-4" />
+                    My Courses
                   </Link>
                 )}
 

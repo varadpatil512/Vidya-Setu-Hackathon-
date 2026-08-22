@@ -37,12 +37,18 @@ export const authAPI = {
 };
 
 export const coursesAPI = {
-  getAll: () => api.get('/courses'),
+  getAll: (params) => api.get('/courses', { params }),
   getById: (id) => api.get(`/courses/${id}`),
+  getCategories: () => api.get('/courses/meta/categories'),
+  getAdminStats: () => api.get('/courses/admin/stats'),
+  getTeachers: () => api.get('/courses/admin/teachers'),
+  getPending: () => api.get('/courses/admin/pending'),
+  approve: (id) => api.patch(`/courses/admin/${id}/approve`),
+  reject: (id, reason) => api.patch(`/courses/admin/${id}/reject`, { reason }),
+  getEnrolledStudents: (courseId) => api.get(`/courses/${courseId}/students`),
   create: (data) => api.post('/courses', data),
   update: (id, data) => api.put(`/courses/${id}`, data),
   delete: (id) => api.delete(`/courses/${id}`),
-  getEnrolledStudents: (id) => api.get(`/courses/${id}/students`),
 };
 
 export const enrollmentsAPI = {
@@ -71,7 +77,10 @@ export const interviewsAPI = {
 };
 
 export const teacherAPI = {
-  getQueue: () => api.get('/teacher/queue'),
+  getMyCourses: () => api.get('/teacher/courses'),
+  createCourse: (data) => api.post('/teacher/courses', data),
+  getCourseStudents: (courseId) => api.get(`/teacher/courses/${courseId}/students`),
+  getQueue: (courseId) => api.get('/teacher/queue', { params: { courseId } }),
   review: (submissionId, decision, comments) => api.post('/teacher/reviews', { submissionId, decision, comments }),
 };
 
@@ -82,7 +91,7 @@ export const portfolioAPI = {
 
 export const feedbackAPI = {
   submitInterviewFeedback: (data) => api.post('/feedback/interview', data),
-  getInterviewFeedback: () => api.get('/feedback/interview'),
+  getInterviewFeedback: (courseId) => api.get('/feedback/interview', { params: { courseId } }),
 };
 
 export default api;

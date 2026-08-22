@@ -142,8 +142,14 @@ const demoUsers = [
 
 export async function seedDatabase({ silentIfNotEmpty = false, force = false } = {}) {
   const userCount = await User.countDocuments();
+
   if (userCount > 0 && !force) {
-    if (!silentIfNotEmpty) console.log('[seed] users already exist — skipping seed (pass force: true or drop database to reseed)');
+    // If database is already populated, make sure courses have an assigned teacher
+    const teacherUser = await User.findOne({ role: 'TEACHER' });
+    if (teacherUser) {
+      await Course.updateMany({ assignedTeacher: null }, { assignedTeacher: teacherUser._id });
+    }
+    if (!silentIfNotEmpty) console.log('[seed] users already exist — assigned unassigned courses to teacher');
     return;
   }
 
@@ -160,11 +166,18 @@ export async function seedDatabase({ silentIfNotEmpty = false, force = false } =
   }
 
   const users = await User.create(demoUsers);
-  const createdCourses = await Course.create(courses);
+  const teacherUser = users.find(u => u.role === 'TEACHER');
+
+  const coursesWithTeacher = courses.map(c => ({
+    ...c,
+    assignedTeacher: teacherUser ? teacherUser._id : null,
+  }));
+
+  const createdCourses = await Course.create(coursesWithTeacher);
 
   console.log('[seed] created users:');
   demoUsers.forEach(u => console.log(`   ${u.role.padEnd(7)} ${u.email} / ${u.password}`));
-  console.log(`[seed] created ${createdCourses.length} courses (1 video each)`);
+  console.log(`[seed] created ${createdCourses.length} courses assigned to teacher ${teacherUser?.email}`);
 }
 
 // run directly: npm run seed (uses MONGO_URI, or in-memory DB if none set)

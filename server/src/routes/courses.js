@@ -12,14 +12,17 @@ const router = Router();
 router.get('/', async (req, res) => {
   try {
     const { search, category } = req.query;
-    const filter = {};
+    // Public catalog strictly shows approved courses only
+    const filter = { status: 'approved' };
     if (category && category !== 'All') filter.category = category;
     if (search) filter.$or = [
       { title: new RegExp(String(search), 'i') },
       { description: new RegExp(String(search), 'i') },
       { skill: new RegExp(String(search), 'i') },
     ];
-    const courses = await Course.find(filter).sort({ createdAt: -1 });
+    const courses = await Course.find(filter)
+      .populate('assignedTeacher', 'name email')
+      .sort({ createdAt: -1 });
     res.json(courses);
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -31,11 +34,65 @@ router.get('/meta/categories', async (req, res) => {
   res.json(cats);
 });
 
+// GET /api/courses/admin/teachers - Admin endpoint to fetch all registered teachers
+router.get('/admin/teachers', auth, requireRole('ADMIN'), async (req, res) => {
+  try {
+    const teachers = await User.find({ role: 'TEACHER' }).select('name email');
+    res.json(teachers);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// GET /api/courses/admin/pending - Admin endpoint to fetch pending course proposals
+router.get('/admin/pending', auth, requireRole('ADMIN'), async (req, res) => {
+  try {
+    const pending = await Course.find({ status: 'pending' })
+      .populate('createdBy', 'name email')
+      .populate('assignedTeacher', 'name email')
+      .sort({ createdAt: -1 });
+    res.json(pending);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// PATCH /api/courses/admin/:id/approve - Admin approves a pending course
+router.patch('/admin/:id/approve', auth, requireRole('ADMIN'), async (req, res) => {
+  try {
+    const course = await Course.findByIdAndUpdate(
+      req.params.id,
+      { status: 'approved', rejectionReason: '' },
+      { new: true }
+    );
+    if (!course) return res.status(404).json({ message: 'Course not found' });
+    res.json(course);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// PATCH /api/courses/admin/:id/reject - Admin rejects a pending course with feedback
+router.patch('/admin/:id/reject', auth, requireRole('ADMIN'), async (req, res) => {
+  try {
+    const { reason } = req.body || {};
+    const course = await Course.findByIdAndUpdate(
+      req.params.id,
+      { status: 'rejected', rejectionReason: String(reason || 'Course proposal rejected by administration') },
+      { new: true }
+    );
+    if (!course) return res.status(404).json({ message: 'Course not found' });
+    res.json(course);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 // platform stats — must be registered before /:id
 router.get('/admin/stats', auth, requireRole('ADMIN'), async (req, res) => {
   try {
     const [totalCourses, totalStudents, totalEnrollments, submissions, flagged, verified] = await Promise.all([
-      Course.countDocuments(),
+      Course.countDocuments({ status: 'approved' }),
       User.countDocuments({ role: 'STUDENT' }),
       Enrollment.countDocuments(),
       Submission.countDocuments(),
@@ -50,7 +107,7 @@ router.get('/admin/stats', auth, requireRole('ADMIN'), async (req, res) => {
 
 router.get('/:id', async (req, res) => {
   try {
-    const course = await Course.findById(req.params.id);
+    const course = await Course.findById(req.params.id).populate('assignedTeacher', 'name email');
     if (!course) return res.status(404).json({ message: 'Course not found' });
     res.json(course);
   } catch (err) {

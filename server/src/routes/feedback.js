@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import InterviewFeedback from '../models/InterviewFeedback.js';
 import Submission from '../models/Submission.js';
+import Course from '../models/Course.js';
 import { auth, requireRole } from '../middleware/auth.js';
 
 const router = Router();
@@ -37,18 +38,39 @@ router.post('/interview', auth, async (req, res) => {
   }
 });
 
-// GET /api/feedback/interview - Admin / Teacher endpoint to list all interview feedback
+// GET /api/feedback/interview - Admin / Teacher endpoint to list interview feedback (scoped for TEACHER)
 router.get('/interview', auth, requireRole('TEACHER', 'ADMIN'), async (req, res) => {
   try {
+    const { courseId } = req.query;
+
+    let targetCourseIds = null;
+    if (req.user.role === 'TEACHER') {
+      const assigned = await Course.find({ assignedTeacher: req.user._id }).select('_id');
+      targetCourseIds = assigned.map(c => String(c._id));
+      if (courseId) {
+        if (!targetCourseIds.includes(String(courseId))) {
+          return res.status(403).json({ message: 'Access denied: You are not assigned to this course' });
+        }
+        targetCourseIds = [String(courseId)];
+      }
+    } else if (courseId) {
+      targetCourseIds = [String(courseId)];
+    }
+
     const feedbackList = await InterviewFeedback.find()
       .populate('student', 'name email')
       .populate({
         path: 'submission',
-        populate: { path: 'course', select: 'title skill' }
+        populate: { path: 'course', select: 'title skill assignedTeacher' }
       })
       .sort({ createdAt: -1 });
 
-    res.json(feedbackList);
+    // Filter feedback entries by target course IDs if scoped
+    const filtered = targetCourseIds
+      ? feedbackList.filter(f => f.submission?.course && targetCourseIds.includes(String(f.submission.course._id || f.submission.course)))
+      : feedbackList;
+
+    res.json(filtered);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
